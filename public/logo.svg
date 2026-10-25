@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 547 479" width="547" height="479" role="img" aria-label="Terraviva">
+  <defs>
+    <clipPath id="c"><circle cx="273" cy="165" r="118"/></clipPath>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e7c7b"/><stop offset="1" stop-color="#2aa8a6"/>
+    </linearGradient>
+  </defs>
+  <path d="M148 98 A150 150 0 0 1 245 58" fill="none" stroke="#4a8a1f" stroke-width="5" stroke-linecap="round"/>
+  <path d="M305 58 A150 150 0 0 1 400 98" fill="none" stroke="#4a8a1f" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="105" cy="200" r="13" fill="#2aa8a6"/>
+  <circle cx="436" cy="200" r="13" fill="#4a8a1f"/>
+  <g clip-path="url(#c)">
+    <rect x="150" y="45" width="246" height="240" fill="url(#sky)"/>
+    <circle cx="222" cy="95" r="2.5" fill="#fff"/><circle cx="262" cy="115" r="3" fill="#fff"/><circle cx="240" cy="75" r="2" fill="#fff"/>
+    <circle cx="345" cy="120" r="50" fill="#f4f7f4"/>
+    <path d="M308 105 q18-22 42-12 q20 4 28 22 q-6 22-26 26 q-14-14-30-10 q-14-6-14-26z" fill="#4a8a1f"/>
+    <path d="M150 185 Q250 150 396 190 L396 285 L150 285z" fill="#3fb6b3"/>
+    <path d="M150 215 Q270 175 396 225 L396 285 L150 285z" fill="#4a8a1f"/>
+    <path d="M150 245 Q220 225 300 262 L150 285z" fill="#c8791e"/>
+    <path d="M200 285 Q300 215 396 250 L396 285z" fill="#6aa832"/>
+    <rect x="196" y="140" width="5" height="62" fill="#fff"/>
+    <path d="M198 150 C170 150 158 128 166 112 C190 112 200 132 198 150z" fill="#4a8a1f" stroke="#fff" stroke-width="4"/>
+    <path d="M200 140 C226 140 238 118 230 102 C208 102 198 120 200 140z" fill="#4a8a1f" stroke="#fff" stroke-width="4"/>
+    <path d="M199 118 C190 102 196 88 199 80 C204 90 210 104 199 118z" fill="#4a8a1f" stroke="#fff" stroke-width="3"/>
+  </g>
+  <text x="273" y="392" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="68" font-weight="700" fill="#0e7c7b" letter-spacing="3">TERRAVIVA</text>
+  <text x="273" y="432" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="600" fill="#1d3b2a" letter-spacing="3">SUSTAIN • RESTORE • THRIVE</text>
+</svg>
