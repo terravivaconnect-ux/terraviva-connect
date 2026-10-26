@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase, fullName, timeAgo } from '@/lib/supabase';
 import Avatar from './Avatar';
@@ -16,10 +16,19 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
   const [saved, setSaved] = useState(savedInit); const [ccount, setCcount] = useState(post.comments?.[0]?.count || 0);
   const [editing, setEditing] = useState(false); const [body, setBody] = useState(post.body); const [shown, setShown] = useState(post.body);
   const [votes, setVotes] = useState(post.poll_votes || []);
+  const [o, setO] = useState(null);
   const a = post.author; const mine = rx.find(r => r.user_id === me.id);
   const kinds = [...new Set(rx.map(r => r.kind))].slice(0, 3);
   const opts = [...(post.poll_options || [])].sort((x, y) => x.position - y.position);
   const myVote = votes.find(v => v.user_id === me.id);
+
+  useEffect(() => {
+    if (!post.repost_of) return;
+    supabase.from('posts')
+      .select('id,body,created_at,author:profiles!posts_author_id_fkey(username,first_name,last_name,avatar_url), post_media(*)')
+      .eq('id', post.repost_of).maybeSingle()
+      .then(({ data }) => { if (data) setO(data); });
+  }, [post.repost_of]);
 
   const react = async (kind) => {
     setPicker(false);
@@ -54,7 +63,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
   const share = () => { navigator.clipboard?.writeText(`${location.origin}/?post=${post.id}`); alert('Link copied'); };
   const repost = async () => {
     const c = prompt('Add your thoughts (optional):'); if (c === null) return;
-    const { error } = await supabase.from('posts').insert({ author_id: me.id, body: c.trim() || '🔁 Reposted', repost_of: post.original ? post.original.id : post.id });
+    const { error } = await supabase.from('posts').insert({ author_id: me.id, body: c.trim() || '🔁 Reposted', repost_of: post.repost_of || post.id });
     if (error) alert(error.message); else onChange?.();
   };
   const saveEdit = async () => {
@@ -62,12 +71,11 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
     const { error } = await supabase.from('posts').update({ body: body.trim(), updated_at: new Date().toISOString() }).eq('id', post.id);
     if (!error) { setShown(body.trim()); setEditing(false); }
   };
-  const vote = async (o) => {
+  const vote = async (op) => {
     if (myVote) return;
-    const { error } = await supabase.from('poll_votes').insert({ post_id: post.id, user_id: me.id, option_id: o.id });
-    if (!error) setVotes([...votes, { user_id: me.id, option_id: o.id }]);
+    const { error } = await supabase.from('poll_votes').insert({ post_id: post.id, user_id: me.id, option_id: op.id });
+    if (!error) setVotes([...votes, { user_id: me.id, option_id: op.id }]);
   };
-  const o = post.original;
 
   return (
     <div className="card">
