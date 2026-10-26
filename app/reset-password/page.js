@@ -12,7 +12,7 @@ export default function Reset() {
     setOk(true); setTimeout(() => router.replace('/'), 1200);
   };
   return (<div className="auth"><div className="auth-card">
-    <img className="logo" src="/logo.png" alt="Terraviva" /><h2>Set a new password</h2>
+    <img className="logo" src="/logo.svg" alt="Terraviva" /><h2>Set a new password</h2>
     {err && <div className="err">{err}</div>}{ok && <div className="ok">Password updated.</div>}
     <form onSubmit={submit}><PasswordInput value={pw} onChange={e => setPw(e.target.value)} placeholder="New password (min 8 characters)" autoComplete="new-password" />
       <button style={{ width: '100%' }}>Update password</button></form></div></div>);
