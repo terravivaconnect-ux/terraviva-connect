@@ -3,12 +3,15 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import LangSwitch from '@/components/LangSwitch';
+import { useT } from '@/lib/i18n';
 
 export const Ctx = { me: null };
 const NAV = [['/', '🏠', 'Home'], ['/network', '🤝', 'My Network'], ['/communities', '🌍', 'Communities'], ['/messages', '💬', 'Messages'],
-  ['/notifications', '🔔', 'Notifications'], ['/events', '📅', 'Events'], ['/opportunities', '💼', 'Opportunities'], ['/saved', '🔖', 'Saved'], ['/search', '🔍', 'Search']];
+  ['/notifications', '🔔', 'Notifications'], ['/events', '📅', 'Events'], ['/opportunities', '💼', 'Opportunities'], ['/projects', '🌱', 'Projects'], ['/resources', '📚', 'Resources'], ['/saved', '🔖', 'Saved'], ['/search', '🔍', 'Search']];
 
 export default function Shell({ children, staffOnly }) {
+  const { t } = useT();
   const router = useRouter(); const path = usePathname();
   const [me, setMe] = useState(null); const [unread, setUnread] = useState(0); const [ready, setReady] = useState(false);
 
@@ -41,10 +44,11 @@ export default function Shell({ children, staffOnly }) {
         <img className="logo" src="/logo.png" alt="Terraviva Connect" />
         {items.map(([h, i, l]) => (
           <Link key={h} href={h} className={'nav' + (path === h ? ' act' : '')}>
-            <span>{i}</span><span className="lbl">{l}</span>
+            <span>{i}</span><span className="lbl">{t(l)}</span>
             {l === 'Notifications' && unread > 0 && <span className="cnt">{unread}</span>}
           </Link>))}
-        <a className="nav hide-m" style={{ marginTop: 'auto', cursor: 'pointer' }} onClick={logout}><span>🚪</span><span className="lbl">Log out</span></a>
+        <div className="hide-m" style={{ marginTop: 'auto', padding: '.4rem .9rem' }}><LangSwitch /></div>
+        <a className="nav hide-m" style={{ cursor: 'pointer' }} onClick={logout}><span>🚪</span><span className="lbl">{t("Log out")}</span></a>
       </nav>
       <main className="main">{typeof children === 'function' ? children(me) : children}</main>
     </div>
