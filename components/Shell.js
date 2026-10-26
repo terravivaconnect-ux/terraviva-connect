@@ -30,7 +30,7 @@ export default function Shell({ children, staffOnly }) {
     return () => { if (ch) supabase.removeChannel(ch); };
   }, [router]);
 
-  if (!ready) return <div className="auth"><img src="/logo.png" width="120" alt="Terraviva" /></div>;
+  if (!ready) return <div className="auth"><img src="/logo.svg" width="120" alt="Terraviva" /></div>;
   if (staffOnly && me.role === 'member') return <div className="main">Not authorised.</div>;
   const logout = async () => { await supabase.auth.signOut(); router.replace('/login'); };
   const items = [...NAV, [`/profile/${me.username}`, '👤', 'My Profile'], ['/settings', '⚙️', 'Settings']];
@@ -38,7 +38,7 @@ export default function Shell({ children, staffOnly }) {
   return (
     <div className="shell">
       <nav className="side">
-        <img className="logo" src="/logo.png" alt="Terraviva Connect" />
+        <img className="logo" src="/logo.svg" alt="Terraviva Connect" />
         {items.map(([h, i, l]) => (
           <Link key={h} href={h} className={'nav' + (path === h ? ' act' : '')}>
             <span>{i}</span><span className="lbl">{l}</span>
