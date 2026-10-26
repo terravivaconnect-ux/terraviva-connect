@@ -10,7 +10,7 @@ export default function Forgot() {
     error ? setErr(error.message) : setMsg('If that email exists, a reset link has been sent.');
   };
   return (<div className="auth"><div className="auth-card">
-    <img className="logo" src="/logo.svg" alt="Terraviva" /><h2>Forgot password</h2>
+    <img className="logo" src="/logo.png" alt="Terraviva" /><h2>Forgot password</h2>
     <p className="tag">Enter your email and we will send you a reset link.</p>
     {err && <div className="err">{err}</div>}{msg && <div className="ok">{msg}</div>}
     <form onSubmit={submit}><input type="email" placeholder="Email address" value={email} onChange={e => setEmail(e.target.value)} required />
