@@ -6,7 +6,7 @@ import Avatar from './Avatar';
 
 const TYPES = [['text', 'Post'], ['question', 'Question'], ['advice', 'Agricultural advice'], ['awareness', 'Environmental awareness'], ['research', 'Research summary'], ['project_update', 'Project update'], ['story', 'Success story'], ['opportunity', 'Opportunity']];
 const A = 'id,username,first_name,last_name,headline,avatar_url,is_beneficiary_verified,is_professional_verified,is_org_verified';
-export const POST_SELECT = `*, author:profiles!posts_author_id_fkey(${A}), reactions(user_id,kind,user:profiles(id,username,first_name,last_name,avatar_url)), comments(count), community:communities(name,slug), post_media(*), poll_options(*), poll_votes(user_id,option_id), original:posts!posts_repost_of_fkey(id,body,created_at,author:profiles!posts_author_id_fkey(username,first_name,last_name,avatar_url), post_media(*))`;
+export const POST_SELECT = `*, author:profiles!posts_author_id_fkey(${A}), reactions(user_id,kind,user:profiles(id,username,first_name,last_name,avatar_url)), comments(count), community:communities(name,slug), post_media(*), poll_options(*), poll_votes(user_id,option_id)`;
 
 const kindOf = (f) => f.type.startsWith('image') ? 'image' : f.type.startsWith('video') ? 'video' : 'document';
 
