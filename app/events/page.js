@@ -2,7 +2,9 @@
 import { useEffect, useState } from 'react';
 import Shell from '@/components/Shell';
 import { supabase } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 function Inner({ me }) {
+  const { t } = useT();
   const [list, setList] = useState([]); const [rsvp, setRsvp] = useState([]); const [show, setShow] = useState(false); const [err, setErr] = useState('');
   const [f, setF] = useState({ title: '', description: '', location: '', link: '', starts_at: '' });
   const load = async () => {
@@ -16,7 +18,7 @@ function Inner({ me }) {
     if (error) return setErr(error.message); setShow(false); setF({ title: '', description: '', location: '', link: '', starts_at: '' }); load(); };
   const toggle = async (id, going) => { going ? await supabase.from('event_rsvps').delete().match({ event_id: id, user_id: me.id }) : await supabase.from('event_rsvps').insert({ event_id: id, user_id: me.id }); load(); };
   const del = async (id) => { if (confirm('Delete event?')) { await supabase.from('events').delete().eq('id', id); load(); } };
-  return (<div><div style={{ display: 'flex', justifyContent: 'space-between' }}><h2>Events</h2><button onClick={() => setShow(!show)}>{show ? 'Close' : '+ Create event'}</button></div>
+  return (<div><div style={{ display: 'flex', justifyContent: 'space-between' }}><h2>{t("Events")}</h2><button onClick={() => setShow(!show)}>{show ? 'Close' : '+ Create event'}</button></div>
     {show && <form className="card" onSubmit={create}>{err && <div className="err">{err}</div>}
       <input placeholder="Event title" value={f.title} onChange={set('title')} required /><textarea rows={3} placeholder="Description" value={f.description} onChange={set('description')} />
       <div className="row"><input placeholder="Location (or Online)" value={f.location} onChange={set('location')} /><input type="datetime-local" value={f.starts_at} onChange={set('starts_at')} required /></div>
@@ -29,6 +31,6 @@ function Inner({ me }) {
         <div style={{ marginTop: '.6rem', display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
           <button className={going ? 'sec' : ''} onClick={() => toggle(ev.id, going)}>{going ? '✓ Going' : 'I will attend'}</button>
           {ev.link && <a className="btn sec" href={ev.link} target="_blank" rel="noreferrer">Open link</a>}
-          {ev.host_id === me.id && <button className="link" onClick={() => del(ev.id)}>🗑 Delete</button>}</div></div>); })}</div>);
+          {ev.host_id === me.id && <button className="link" onClick={() => del(ev.id)}>{t("🗑 Delete")}</button>}</div></div>); })}</div>);
 }
 export default function Events() { return <Shell>{me => <Inner me={me} />}</Shell>; }
