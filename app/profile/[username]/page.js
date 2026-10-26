@@ -8,19 +8,22 @@ import Badges from '@/components/Badges';
 import PostCard from '@/components/PostCard';
 import { POST_SELECT } from '@/components/Feed';
 import { supabase, fullName } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 
 const KINDS = [['experience', 'Experience'], ['education', 'Education'], ['certification', 'Certifications'], ['skill', 'Skills']];
 
 function Inner({ me }) {
+  const { t } = useT();
   const { username } = useParams(); const [p, setP] = useState(null); const [posts, setPosts] = useState([]); const [rel, setRel] = useState({}); const [nf, setNf] = useState(false);
-  const [items, setItems] = useState([]); const [views, setViews] = useState(0); const [adding, setAdding] = useState(false);
+  const [items, setItems] = useState([]); const [recs, setRecs] = useState([]); const [recTxt, setRecTxt] = useState(''); const [views, setViews] = useState(0); const [adding, setAdding] = useState(false);
   const [it, setIt] = useState({ kind: 'experience', title: '', organization: '', description: '', start_year: '', end_year: '' });
 
   const load = async () => {
     const { data } = await supabase.from('profiles').select('*').eq('username', username).maybeSingle();
     if (!data) { setNf(true); return; } setP(data);
     const { data: ps } = await supabase.from('posts').select(POST_SELECT).eq('author_id', data.id).eq('is_removed', false).order('created_at', { ascending: false }).limit(20); setPosts(ps || []);
-    const { data: its } = await supabase.from('profile_items').select('*').eq('user_id', data.id).order('start_year', { ascending: false }); setItems(its || []);
+    const { data: its } = await supabase.from('profile_items').select('*, skill_endorsements(endorser_id)').eq('user_id', data.id).order('start_year', { ascending: false }); setItems(its || []);
+    const { data: rc } = await supabase.from('recommendations').select('*, author:profiles!recommendations_author_id_fkey(username,first_name,last_name,avatar_url)').eq('recipient_id', data.id).order('created_at', { ascending: false }); setRecs(rc || []);
     const [f, c, b, fc, fg] = await Promise.all([
       supabase.from('follows').select('follower_id').match({ follower_id: me.id, following_id: data.id }),
       supabase.from('connections').select('*').or(`and(requester_id.eq.${me.id},addressee_id.eq.${data.id}),and(requester_id.eq.${data.id},addressee_id.eq.${me.id})`),
@@ -38,7 +41,7 @@ function Inner({ me }) {
   };
   useEffect(() => { load(); }, [username]);
   if (nf) return <div className="card">Profile not found or not visible to you.</div>;
-  if (!p) return <p className="muted">Loading…</p>;
+  if (!p) return <p className="muted">{t("Loading…")}</p>;
   const mine = p.id === me.id;
   const follow = async () => { rel.following ? await supabase.from('follows').delete().match({ follower_id: me.id, following_id: p.id }) : await supabase.from('follows').insert({ follower_id: me.id, following_id: p.id }); load(); };
   const connect = async () => { await supabase.from('connections').insert({ requester_id: me.id, addressee_id: p.id }); load(); };
@@ -49,6 +52,12 @@ function Inner({ me }) {
     const row = { user_id: me.id, kind: it.kind, title: it.title.trim(), organization: it.organization || null, description: it.description || null, start_year: it.start_year ? +it.start_year : null, end_year: it.end_year ? +it.end_year : null };
     const { error } = await supabase.from('profile_items').insert(row); if (error) return alert(error.message);
     setIt({ ...it, title: '', organization: '', description: '', start_year: '', end_year: '' }); setAdding(false); load(); };
+  const endorsed = (x) => (x.skill_endorsements || []).some(e => e.endorser_id === me.id);
+  const endorse = async (x) => { endorsed(x) ? await supabase.from('skill_endorsements').delete().match({ item_id: x.id, endorser_id: me.id }) : await supabase.from('skill_endorsements').insert({ item_id: x.id, endorser_id: me.id }); load(); };
+  const myRec = recs.find(r => r.author_id === me.id);
+  const sendRec = async (e) => { e.preventDefault(); const { error } = await supabase.from('recommendations').insert({ recipient_id: p.id, author_id: me.id, body: recTxt.trim() }); if (error) return alert(error.message); setRecTxt(''); load(); };
+  const approveRec = async (r) => { await supabase.from('recommendations').update({ status: 'approved' }).eq('id', r.id); load(); };
+  const delRec = async (r) => { await supabase.from('recommendations').delete().eq('id', r.id); load(); };
   const delItem = async (id) => { await supabase.from('profile_items').delete().eq('id', id); load(); };
 
   return (<div>
@@ -60,32 +69,39 @@ function Inner({ me }) {
         <div>{p.headline}</div><small className="muted">@{p.username} · {[p.district, p.region, p.country].filter(Boolean).join(', ')}</small>
         <div className="muted" style={{ margin: '.4rem 0' }}>{rel.followers} followers · {rel.connections} connections{mine && ` · 👁 ${views} profile views (30 days)`}</div>
         {p.bio && <p>{p.bio}</p>}{p.interest && <span className="badge b-pro" style={{ marginLeft: 0 }}>{p.interest}</span>}
-        {mine ? <div style={{ marginTop: '.8rem' }}><Link className="btn" href="/settings">Edit profile</Link></div> :
+        {mine ? <div style={{ marginTop: '.8rem' }}><Link className="btn" href="/settings">{t("Edit profile")}</Link></div> :
           <div style={{ marginTop: '.8rem', display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
-            {!rel.conn && <button onClick={connect}>Connect</button>}{rel.conn?.status === 'pending' && <button className="sec" disabled>Request pending</button>}
+            {!rel.conn && <button onClick={connect}>{t("Connect")}</button>}{rel.conn?.status === 'pending' && <button className="sec" disabled>Request pending</button>}
             <button className="sec" onClick={follow}>{rel.following ? 'Following' : 'Follow'}</button>
-            <Link className="btn sec" href={`/messages?to=${p.id}`}>Message</Link>
-            <button className="link" onClick={block}>{rel.blocked ? 'Unblock' : 'Block'}</button><button className="link" onClick={report}>Report</button></div>}
+            <Link className="btn sec" href={`/messages?to=${p.id}`}>{t("Message")}</Link>
+            <button className="link" onClick={block}>{rel.blocked ? 'Unblock' : 'Block'}</button><button className="link" onClick={report}>{t("Report")}</button></div>}
       </div></div>
 
     {(items.length > 0 || mine) && <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}><h3>Background</h3>{mine && <button className="sec" onClick={() => setAdding(!adding)}>{adding ? 'Close' : '+ Add'}</button>}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}><h3>{t("Background")}</h3>{mine && <button className="sec" onClick={() => setAdding(!adding)}>{adding ? 'Close' : '+ Add'}</button>}</div>
       {adding && <form onSubmit={addItem} style={{ marginBottom: '.8rem' }}>
         <select value={it.kind} onChange={setK('kind')}>{KINDS.map(([v, l]) => <option key={v} value={v}>{l.replace(/s$/, '')}</option>)}</select>
         <input placeholder={it.kind === 'skill' ? 'Skill (e.g. Agroforestry)' : 'Title / Degree / Certificate'} value={it.title} onChange={setK('title')} required />
         {it.kind !== 'skill' && <><input placeholder="Organization / School" value={it.organization} onChange={setK('organization')} />
           <div className="row"><input type="number" placeholder="Start year" value={it.start_year} onChange={setK('start_year')} /><input type="number" placeholder="End year (blank = present)" value={it.end_year} onChange={setK('end_year')} /></div>
           <textarea rows={2} placeholder="Description" value={it.description} onChange={setK('description')} /></>}
-        <button>Save</button></form>}
+        <button>{t("Save")}</button></form>}
       {KINDS.map(([k, label]) => { const list = items.filter(x => x.kind === k); if (!list.length) return null;
         return (<div className="sect" key={k}><h4>{label}</h4>
-          {k === 'skill' ? <div>{list.map(x => <span className="skill" key={x.id}>{x.title}{mine && <button className="link" style={{ padding: '0 .3rem' }} onClick={() => delItem(x.id)}>✕</button>}</span>)}</div>
+          {k === 'skill' ? <div>{list.map(x => <span className="skill" key={x.id}>{x.title}<small> {x.skill_endorsements?.length || 0}</small>{!mine && <button className="link" style={{ padding: '0 .3rem' }} title="Endorse" onClick={() => endorse(x)}>{endorsed(x) ? '✓' : '+'}</button>}{mine && <button className="link" style={{ padding: '0 .3rem' }} onClick={() => delItem(x.id)}>✕</button>}</span>)}</div>
             : list.map(x => <div className="item" key={x.id}><div><b>{x.title}</b><div className="muted">{x.organization} {(x.start_year || x.end_year) && `· ${x.start_year || ''} – ${x.end_year || 'Present'}`}</div>{x.description && <div>{x.description}</div>}</div>
               {mine && <button className="link" onClick={() => delItem(x.id)}>🗑</button>}</div>)}</div>); })}
       {!items.length && <p className="muted">Add your experience, education and skills.</p>}
     </div>}
 
-    <h3>Posts</h3>{!posts.length && <p className="muted">No posts yet.</p>}{posts.map(x => <PostCard key={x.id} post={x} me={me} onChange={load} />)}
+    <div className="card"><h3>{t("Recommendations")}</h3>
+      {!recs.length && <p className="muted">No recommendations yet.</p>}
+      {recs.map(r => <div className="item" key={r.id}><div><b>{fullName(r.author)}</b> {r.status === 'pending' && <span className="badge b-org">pending approval</span>}<div>{r.body}</div></div>
+        <div>{mine && r.status === 'pending' && <button onClick={() => approveRec(r)}>Show on profile</button>}{(mine || r.author_id === me.id) && <button className="link" onClick={() => delRec(r)}>🗑</button>}</div></div>)}
+      {!mine && !myRec && <form onSubmit={sendRec} style={{ marginTop: '.6rem' }}><textarea rows={3} minLength={10} maxLength={1500} placeholder="Write a recommendation (min 10 characters)" value={recTxt} onChange={e => setRecTxt(e.target.value)} required /><button>Send recommendation</button></form>}
+    </div>
+
+    <h3>{t("Posts")}</h3>{!posts.length && <p className="muted">No posts yet.</p>}{posts.map(x => <PostCard key={x.id} post={x} me={me} onChange={load} />)}
   </div>);
 }
 export default function Profile() { return <Shell>{me => <Inner me={me} />}</Shell>; }
