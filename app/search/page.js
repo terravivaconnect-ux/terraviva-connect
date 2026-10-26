@@ -8,7 +8,9 @@ import Badges from '@/components/Badges';
 import PostCard from '@/components/PostCard';
 import { POST_SELECT } from '@/components/Feed';
 import { supabase, fullName } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
 function Inner({ me }) {
+  const { t } = useT();
   const sp = useSearchParams(); const [q, setQ] = useState(sp.get('q') || ''); const [country, setCountry] = useState(''); const [r, setR] = useState(null);
   const run = async (query) => {
     const t = query.trim().replace(/[%,()]/g, ''); if (!t) return;
@@ -21,8 +23,8 @@ function Inner({ me }) {
     setR({ p: p.data || [], c: c.data || [], po: po.data || [] });
   };
   useEffect(() => { if (sp.get('q')) { setQ(sp.get('q')); run(sp.get('q')); } }, [sp]);
-  return (<div><h2>Search</h2>
-    <form onSubmit={(e) => { e.preventDefault(); run(q); }} className="row"><input placeholder="Members, communities, posts, #hashtags…" value={q} onChange={e => setQ(e.target.value)} /><input placeholder="Country (filter)" value={country} onChange={e => setCountry(e.target.value)} style={{ flex: '0 0 160px' }} /><button style={{ flex: '0 0 auto', height: 44 }}>Search</button></form>
+  return (<div><h2>{t("Search")}</h2>
+    <form onSubmit={(e) => { e.preventDefault(); run(q); }} className="row"><input placeholder={t("Members, communities, posts, #hashtags…")} value={q} onChange={e => setQ(e.target.value)} /><input placeholder="Country (filter)" value={country} onChange={e => setCountry(e.target.value)} style={{ flex: '0 0 160px' }} /><button style={{ flex: '0 0 auto', height: 44 }}>{t("Search")}</button></form>
     {r && <>
       <h3>Members ({r.p.length})</h3>{r.p.map(p => <div className="card" key={p.id}><div className="post-h"><Avatar p={p} /><div className="meta"><Link href={`/profile/${p.username}`}><b>{fullName(p)}<Badges p={p} /></b></Link><small>{p.headline} {p.country && '· ' + p.country}</small></div></div></div>)}
       <h3>Communities ({r.c.length})</h3>{r.c.map(c => <Link key={c.id} href="/communities"><div className="card"><b>{c.name}</b><div className="muted">{c.description}</div></div></Link>)}
