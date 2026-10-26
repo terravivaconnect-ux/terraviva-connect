@@ -17,7 +17,7 @@ export default function Login() {
   };
   return (
     <div className="auth"><div className="auth-card">
-      <img className="logo" src="/logo.svg" alt="Terraviva" />
+      <img className="logo" src="/logo.png" alt="Terraviva" />
       <h2>Terraviva Connect</h2>
       <p className="tag">Connect. Share Knowledge. Empower Communities. Protect Nature.</p>
       {err && <div className="err">{err}</div>}
