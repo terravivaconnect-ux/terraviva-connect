@@ -6,11 +6,14 @@ import Avatar from './Avatar';
 import Badges from './Badges';
 import RichText from './RichText';
 import MediaGallery from './MediaGallery';
+import Comments from './Comments';
+import { useT } from '@/lib/i18n';
 
 export const REACTIONS = [['like', '👍', 'Like'], ['love', '❤️', 'Love'], ['insightful', '💡', 'Insightful'], ['support', '🤝', 'Support'], ['celebrate', '🎉', 'Celebrate'], ['curious', '🤔', 'Curious']];
 const EMOJI = Object.fromEntries(REACTIONS.map(r => [r[0], r[1]]));
 
 export default function PostCard({ post, me, onChange, savedInit = false }) {
+  const { t } = useT();
   const [open, setOpen] = useState(false); const [cm, setCm] = useState([]); const [txt, setTxt] = useState('');
   const [rx, setRx] = useState(post.reactions || []); const [picker, setPicker] = useState(false);
   const [saved, setSaved] = useState(savedInit); const [ccount, setCcount] = useState(post.comments?.[0]?.count || 0);
@@ -24,10 +27,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
 
   useEffect(() => {
     if (!post.repost_of) return;
-    supabase.from('posts')
-      .select('id,body,created_at,author:profiles!posts_author_id_fkey(username,first_name,last_name,avatar_url), post_media(*)')
-      .eq('id', post.repost_of).maybeSingle()
-      .then(({ data }) => { if (data) setO(data); });
+    supabase.from('posts').select('id,body,created_at,author:profiles!posts_author_id_fkey(username,first_name,last_name,avatar_url), post_media(*)').eq('id', post.repost_of).maybeSingle().then(({ data }) => { if (data) setO(data); });
   }, [post.repost_of]);
 
   const react = async (kind) => {
@@ -40,16 +40,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
       await supabase.from('reactions').upsert({ post_id: post.id, user_id: me.id, kind });
     }
   };
-  const loadC = async () => {
-    const { data } = await supabase.from('comments').select('*, author:profiles!comments_author_id_fkey(id,username,first_name,last_name,avatar_url)').eq('post_id', post.id).order('created_at');
-    setCm(data || []);
-  };
-  const toggle = () => { if (!open) loadC(); setOpen(!open); };
-  const send = async (e) => {
-    e.preventDefault(); if (!txt.trim()) return;
-    const { error } = await supabase.from('comments').insert({ post_id: post.id, author_id: me.id, body: txt.trim() });
-    if (!error) { setTxt(''); setCcount(ccount + 1); loadC(); }
-  };
+  const toggle = () => setOpen(!open);
   const save = async () => {
     if (saved) await supabase.from('saved_posts').delete().match({ post_id: post.id, user_id: me.id });
     else await supabase.from('saved_posts').insert({ post_id: post.id, user_id: me.id });
@@ -60,7 +51,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
     await supabase.from('reports').insert({ reporter_id: me.id, target_type: 'post', target_id: post.id, reason }); alert('Thank you. Our moderators will review it.');
   };
   const del = async () => { if (confirm('Delete this post?')) { await supabase.from('posts').delete().eq('id', post.id); onChange?.(); } };
-  const share = () => { navigator.clipboard?.writeText(`${location.origin}/?post=${post.id}`); alert('Link copied'); };
+  const share = () => { navigator.clipboard?.writeText(`${location.origin}/post/${post.id}`); alert('Link copied'); };
   const repost = async () => {
     const c = prompt('Add your thoughts (optional):'); if (c === null) return;
     const { error } = await supabase.from('posts').insert({ author_id: me.id, body: c.trim() || '🔁 Reposted', repost_of: post.repost_of || post.id });
@@ -71,10 +62,10 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
     const { error } = await supabase.from('posts').update({ body: body.trim(), updated_at: new Date().toISOString() }).eq('id', post.id);
     if (!error) { setShown(body.trim()); setEditing(false); }
   };
-  const vote = async (op) => {
+  const vote = async (o) => {
     if (myVote) return;
-    const { error } = await supabase.from('poll_votes').insert({ post_id: post.id, user_id: me.id, option_id: op.id });
-    if (!error) setVotes([...votes, { user_id: me.id, option_id: op.id }]);
+    const { error } = await supabase.from('poll_votes').insert({ post_id: post.id, user_id: me.id, option_id: o.id });
+    if (!error) setVotes([...votes, { user_id: me.id, option_id: o.id }]);
   };
 
   return (
@@ -86,7 +77,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
         {post.type !== 'text' && <span className="badge b-pro">{post.type.replace('_', ' ')}</span>}
       </div>
       {editing ? <div><textarea rows={4} value={body} onChange={e => setBody(e.target.value)} maxLength={5000} />
-        <button onClick={saveEdit}>Save</button> <button className="sec" onClick={() => { setEditing(false); setBody(shown); }}>Cancel</button></div>
+        <button onClick={saveEdit}>{t("Save")}</button> <button className="sec" onClick={() => { setEditing(false); setBody(shown); }}>{t("Cancel")}</button></div>
         : <div className="post-body"><RichText text={shown} /></div>}
 
       {post.type === 'poll' && opts.length > 0 && <div className="poll">
@@ -111,21 +102,17 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
         <div className="rx-wrap" onMouseEnter={() => setPicker(true)} onMouseLeave={() => setPicker(false)}>
           {picker && <div className="picker">{REACTIONS.map(([k, e, l]) => <button type="button" key={k} title={l} onClick={() => react(k)}>{e}</button>)}</div>}
           <button className="link" style={mine ? { color: 'var(--teal)' } : {}} onClick={() => react(mine ? mine.kind : 'like')}>
-            {mine ? `${EMOJI[mine.kind]} ${REACTIONS.find(r => r[0] === mine.kind)[2]}` : '👍 Like'}</button>
+            {mine ? `${EMOJI[mine.kind]} ${REACTIONS.find(r => r[0] === mine.kind)[2]}` : t("👍 Like")}</button>
           <button type="button" className="link" onClick={() => setPicker(!picker)}>▾</button>
         </div>
-        <button className="link" onClick={toggle}>💬 Comment</button>
-        <button className="link" onClick={repost}>🔁 Repost</button>
-        <button className="link" onClick={share}>🔗 Share</button>
-        <button className="link" onClick={save}>{saved ? '🔖 Saved' : '🔖 Save'}</button>
-        {post.author_id === me.id ? <><button className="link" onClick={() => setEditing(true)}>✏️ Edit</button><button className="link" onClick={del}>🗑 Delete</button></>
-          : <button className="link" onClick={report}>🚩 Report</button>}
+        <button className="link" onClick={toggle}>{t("💬 Comment")}</button>
+        <button className="link" onClick={repost}>{t("🔁 Repost")}</button>
+        <button className="link" onClick={share}>{t("🔗 Share")}</button>
+        <button className="link" onClick={save}>{saved ? t("🔖 Saved") : t("🔖 Save")}</button>
+        {post.author_id === me.id ? <><button className="link" onClick={() => setEditing(true)}>{t("✏️ Edit")}</button><button className="link" onClick={del}>{t("🗑 Delete")}</button></>
+          : <button className="link" onClick={report}>{t("🚩 Report")}</button>}
       </div>
-      {open && <div>
-        {cm.map(c => <div className="cmt" key={c.id}><Avatar p={c.author} size={30} /><div className="bub"><b>{fullName(c.author)}</b> <small className="muted">{timeAgo(c.created_at)}</small><div><RichText text={c.body} /></div></div></div>)}
-        <form onSubmit={send} style={{ display: 'flex', gap: '.5rem', marginTop: '.5rem' }}>
-          <input style={{ margin: 0 }} placeholder="Write a comment…" value={txt} onChange={e => setTxt(e.target.value)} maxLength={2000} /><button>Send</button></form>
-      </div>}
+      {open && <Comments postId={post.id} me={me} onAdded={() => setCcount(ccount + 1)} />}
     </div>
   );
 }
