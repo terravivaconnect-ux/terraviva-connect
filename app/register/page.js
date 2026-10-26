@@ -19,11 +19,11 @@ export default function Register() {
     setBusy(false);
     error ? setErr(error.message) : setDone(true);
   };
-  if (done) return (<div className="auth"><div className="auth-card"><img className="logo" src="/logo.svg" alt="" /><h2>Check your email</h2>
+  if (done) return (<div className="auth"><div className="auth-card"><img className="logo" src="/logo.png" alt="" /><h2>Check your email</h2>
     <p className="muted">We sent a verification link to <b>{f.email}</b>. Verify your account, then log in.</p><Link className="btn" href="/login">Go to login</Link></div></div>);
   return (
     <div className="auth"><div className="auth-card" style={{ maxWidth: 560 }}>
-      <img className="logo" src="/logo.svg" alt="Terraviva" /><h2>Create your account</h2>
+      <img className="logo" src="/logo.png" alt="Terraviva" /><h2>Create your account</h2>
       <p className="tag">Open to everyone — beneficiaries and non-beneficiaries.</p>
       {err && <div className="err">{err}</div>}
       <form onSubmit={submit}>
