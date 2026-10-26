@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase, uploadFile } from '@/lib/supabase';
 import PostCard from './PostCard';
 import Avatar from './Avatar';
+import { useT } from '@/lib/i18n';
 
 const TYPES = [['text', 'Post'], ['question', 'Question'], ['advice', 'Agricultural advice'], ['awareness', 'Environmental awareness'], ['research', 'Research summary'], ['project_update', 'Project update'], ['story', 'Success story'], ['opportunity', 'Opportunity']];
 const A = 'id,username,first_name,last_name,headline,avatar_url,is_beneficiary_verified,is_professional_verified,is_org_verified';
@@ -30,6 +31,7 @@ function makePoster(file) {
 }
 
 export default function Feed({ me, communityId, canPost = true }) {
+  const { t } = useT();
   const [posts, setPosts] = useState([]); const [saved, setSaved] = useState(new Set()); const [tab, setTab] = useState('all'); const [loading, setLoading] = useState(true);
   const [body, setBody] = useState(''); const [type, setType] = useState('text'); const [files, setFiles] = useState([]); const [busy, setBusy] = useState(false); const [err, setErr] = useState('');
   const [poll, setPoll] = useState(null); const [limit, setLimit] = useState(15);
@@ -80,9 +82,9 @@ export default function Feed({ me, communityId, canPost = true }) {
 
   return (<div>
     {canPost && <form className="card" onSubmit={publish}>
-      <div className="post-h"><Avatar p={me} /><b>Share knowledge with the community</b></div>
+      <div className="post-h"><Avatar p={me} /><b>{t("Share knowledge with the community")}</b></div>
       {err && <div className="err">{err}</div>}
-      <textarea rows={3} placeholder="What would you like to share or ask? Use #hashtags and @mentions" value={body} onChange={e => setBody(e.target.value)} maxLength={5000} />
+      <textarea rows={3} placeholder={t("What would you like to share or ask? Use #hashtags and @mentions")} value={body} onChange={e => setBody(e.target.value)} maxLength={5000} />
       {files.length > 0 && <div className="previews">{files.map((f, i) => (
         <div className="pv" key={i}>
           {f.type.startsWith('image') ? <img src={URL.createObjectURL(f)} alt="" /> : <div className="pv-f">{f.type.startsWith('video') ? '🎬' : '📄'}<small>{f.name.slice(0, 18)}</small></div>}
@@ -92,17 +94,17 @@ export default function Feed({ me, communityId, canPost = true }) {
         {poll.length < 4 && <button type="button" className="link" onClick={() => setPoll([...poll, ''])}>+ Add option</button>}</div>}
       <div className="row" style={{ alignItems: 'center' }}>
         <select style={{ margin: 0 }} value={type} onChange={e => setType(e.target.value)}>{TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
-        <label className="btn sec" style={{ margin: 0, textAlign: 'center' }}>📎 Add media / documents
+        <label className="btn sec" style={{ margin: 0, textAlign: 'center' }}>{t("📎 Add media / documents")}
           <input type="file" hidden multiple accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" onChange={pick} /></label>
-        <button type="button" className="sec" onClick={togglePoll}>{poll ? 'Remove poll' : '📊 Poll'}</button>
-        <button disabled={busy || !body.trim()} style={{ flex: '0 0 auto' }}>{busy ? 'Posting…' : 'Publish'}</button>
+        <button type="button" className="sec" onClick={togglePoll}>{poll ? t("Remove poll") : t("📊 Poll")}</button>
+        <button disabled={busy || !body.trim()} style={{ flex: '0 0 auto' }}>{busy ? t("Posting…") : t("Publish")}</button>
       </div>
     </form>}
     {!communityId && <div className="tabs">{[['all', 'All posts'], ['following', 'Following'], ['question', 'Questions'], ['advice', 'Agri advice'], ['awareness', 'Awareness'], ['opportunity', 'Opportunities']].map(([k, l]) =>
-      <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}</div>}
-    {loading && !posts.length && <p className="muted">Loading…</p>}
-    {!loading && !posts.length && <div className="card muted">No posts yet. Be the first to share something!</div>}
+      <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{t(l)}</button>)}</div>}
+    {loading && !posts.length && <p className="muted">{t("Loading…")}</p>}
+    {!loading && !posts.length && <div className="card muted">{t("No posts yet. Be the first to share something!")}</div>}
     {posts.map(p => <PostCard key={p.id} post={p} me={me} savedInit={saved.has(p.id)} onChange={load} />)}
-    {posts.length >= limit && <button className="sec" onClick={() => setLimit(limit + 15)}>Load more</button>}
+    {posts.length >= limit && <button className="sec" onClick={() => setLimit(limit + 15)}>{t("Load more")}</button>}
   </div>);
 }
