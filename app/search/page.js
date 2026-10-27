@@ -24,11 +24,11 @@ function Inner({ me }) {
   };
   useEffect(() => { if (sp.get('q')) { setQ(sp.get('q')); run(sp.get('q')); } }, [sp]);
   return (<div><h2>{t("Search")}</h2>
-    <form onSubmit={(e) => { e.preventDefault(); run(q); }} className="row"><input placeholder={t("Members, communities, posts, #hashtags…")} value={q} onChange={e => setQ(e.target.value)} /><input placeholder="Country (filter)" value={country} onChange={e => setCountry(e.target.value)} style={{ flex: '0 0 160px' }} /><button style={{ flex: '0 0 auto', height: 44 }}>{t("Search")}</button></form>
+    <form onSubmit={(e) => { e.preventDefault(); run(q); }} className="row"><input placeholder={t("Members, communities, posts, #hashtags…")} value={q} onChange={e => setQ(e.target.value)} /><input placeholder={t("Country (filter)")} value={country} onChange={e => setCountry(e.target.value)} style={{ flex: '0 0 160px' }} /><button style={{ flex: '0 0 auto', height: 44 }}>{t("Search")}</button></form>
     {r && <>
-      <h3>Members ({r.p.length})</h3>{r.p.map(p => <div className="card" key={p.id}><div className="post-h"><Avatar p={p} /><div className="meta"><Link href={`/profile/${p.username}`}><b>{fullName(p)}<Badges p={p} /></b></Link><small>{p.headline} {p.country && '· ' + p.country}</small></div></div></div>)}
-      <h3>Communities ({r.c.length})</h3>{r.c.map(c => <Link key={c.id} href="/communities"><div className="card"><b>{c.name}</b><div className="muted">{c.description}</div></div></Link>)}
-      <h3>Posts ({r.po.length})</h3>{r.po.map(p => <PostCard key={p.id} post={p} me={me} />)}</>}
+      <h3>{t("Members")} ({r.p.length})</h3>{r.p.map(p => <div className="card" key={p.id}><div className="post-h"><Avatar p={p} /><div className="meta"><Link href={`/profile/${p.username}`}><b>{fullName(p)}<Badges p={p} /></b></Link><small>{p.headline} {p.country && '· ' + p.country}</small></div></div></div>)}
+      <h3>{t("Communities")} ({r.c.length})</h3>{r.c.map(c => <Link key={c.id} href="/communities"><div className="card"><b>{c.name}</b><div className="muted">{c.description}</div></div></Link>)}
+      <h3>{t("Posts")} ({r.po.length})</h3>{r.po.map(p => <PostCard key={p.id} post={p} me={me} />)}</>}
   </div>);
 }
 export default function Search() { return <Shell>{me => <Suspense><Inner me={me} /></Suspense>}</Shell>; }
