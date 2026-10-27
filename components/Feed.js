@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { supabase, uploadFile } from '@/lib/supabase';
+import { supabase, uploadFile, checkFile } from '@/lib/supabase';
 import PostCard from './PostCard';
 import Avatar from './Avatar';
 import { useT } from '@/lib/i18n';
@@ -55,7 +55,7 @@ export default function Feed({ me, communityId, canPost = true }) {
 
   const pick = (e) => {
     const add = Array.from(e.target.files || []).filter(f => {
-      if (f.size > 50 * 1024 * 1024) { setErr(`${f.name} is larger than 50 MB.`); return false; } return true; });
+      const bad = checkFile(f); if (bad) { setErr(bad); return false; } return true; });
     setFiles([...files, ...add].slice(0, 10)); e.target.value = '';
   };
   const togglePoll = () => setPoll(poll ? null : ['', '']);
@@ -91,9 +91,9 @@ export default function Feed({ me, communityId, canPost = true }) {
           <button type="button" className="rm" onClick={() => setFiles(files.filter((_, j) => j !== i))}>✕</button></div>))}</div>}
       {poll && <div style={{ marginBottom: '.5rem' }}>{poll.map((s, i) => (
         <input key={i} placeholder={`Option ${i + 1}`} maxLength={120} value={s} onChange={e => setPoll(poll.map((x, j) => j === i ? e.target.value : x))} />))}
-        {poll.length < 4 && <button type="button" className="link" onClick={() => setPoll([...poll, ''])}>+ Add option</button>}</div>}
+        {poll.length < 4 && <button type="button" className="link" onClick={() => setPoll([...poll, ''])}>{t("+ Add option")}</button>}</div>}
       <div className="row" style={{ alignItems: 'center' }}>
-        <select style={{ margin: 0 }} value={type} onChange={e => setType(e.target.value)}>{TYPES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+        <select style={{ margin: 0 }} value={type} onChange={e => setType(e.target.value)}>{TYPES.map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}</select>
         <label className="btn sec" style={{ margin: 0, textAlign: 'center' }}>{t("📎 Add media / documents")}
           <input type="file" hidden multiple accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" onChange={pick} /></label>
         <button type="button" className="sec" onClick={togglePoll}>{poll ? t("Remove poll") : t("📊 Poll")}</button>
