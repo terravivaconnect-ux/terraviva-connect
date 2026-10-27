@@ -1,10 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Shell from '@/components/Shell';
+import AdminStats from '@/components/AdminStats';
+import AdminBeneficiaries from '@/components/AdminBeneficiaries';
 import { supabase, fullName, timeAgo } from '@/lib/supabase';
 
 function Inner({ me }) {
-  const [tab, setTab] = useState('reports');
+  const [tab, setTab] = useState('stats');
   const [reports, setReports] = useState([]);
   const [users, setUsers] = useState([]);
   const [coms, setComs] = useState([]);
@@ -58,12 +60,15 @@ function Inner({ me }) {
     <div>
       <h2>Administration</h2>
       <div className="tabs">
-        {['reports', 'users', 'communities'].map(t => (
+        {['stats', 'reports', 'users', 'beneficiaries', 'communities'].filter(t => isAdmin || t !== 'beneficiaries').map(t => (
           <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
             {t[0].toUpperCase() + t.slice(1)}
           </button>
         ))}
       </div>
+
+      {tab === 'stats' && <AdminStats />}
+      {tab === 'beneficiaries' && isAdmin && <AdminBeneficiaries />}
 
       {tab === 'reports' && (
         <div>
