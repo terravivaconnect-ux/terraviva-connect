@@ -71,3 +71,18 @@ button.link{background:none;color:var(--mut);padding:.3rem .5rem;font-weight:500
 .progress{height:10px;background:var(--bg);border-radius:999px;overflow:hidden;margin:.4rem 0}.progress>div{height:100%;background:linear-gradient(90deg,var(--teal),var(--green))}
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.7rem;margin-bottom:.9rem}.stat{background:#fff;border:1px solid var(--bd);border-radius:14px;padding:.8rem;text-align:center}.stat b{display:block;font-size:1.6rem;color:var(--teal)}
 .bars{display:flex;align-items:flex-end;gap:4px;height:90px}.bars div{flex:1;background:var(--teal);border-radius:4px 4px 0 0;min-height:2px}
+
+/* text keeps its paragraphs and line breaks everywhere */
+p,.bub,.m,.item div,.hero div,.muted{white-space:pre-wrap;overflow-wrap:anywhere}
+.post-body,.txt{white-space:pre-wrap;overflow-wrap:anywhere}
+.autota{margin:0;resize:none;min-height:42px;max-height:220px;line-height:1.4;font-family:inherit}
+.m.wide{width:min(520px,88%)}.m.me a{color:#fff;text-decoration:underline}.m .doc{background:#fff;color:var(--text)}
+.media.compact .vid{max-height:280px}.media.compact .doc-f{height:340px}.media.compact .igrid.n1 .icell{max-height:320px}
+/* Terraviva badges */
+.tbadge{display:inline-flex;align-items:center;gap:.3rem;padding:.14rem .6rem .14rem .28rem;border-radius:999px;font-size:.68rem;font-weight:700;letter-spacing:.02em;margin-left:.4rem;vertical-align:middle;color:#fff;position:relative;overflow:hidden;white-space:nowrap;box-shadow:0 1px 5px rgba(14,124,123,.4)}
+.tbadge svg{width:16px;height:16px;flex:none}
+.tbadge.ben{background:linear-gradient(135deg,#0e7c7b 0%,#2c9a6a 55%,#4a8a1f 100%)}
+.tbadge.pro{background:linear-gradient(135deg,#0a5b5a,#0e7c7b)}
+.tbadge.org{background:linear-gradient(135deg,#a16a00,#e0a526);box-shadow:0 1px 5px rgba(161,106,0,.4)}
+.tbadge::after{content:"";position:absolute;top:0;left:-70%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:tshine 4s infinite}
+@keyframes tshine{0%{left:-70%}55%,100%{left:140%}}
