@@ -11,7 +11,7 @@ export default function Privacy() {
     <h3>Storage and processors</h3><p>Data is stored with our hosting providers (Supabase for database and authentication; Cloudinary for images, videos and documents; Vercel for hosting). Data may be processed outside your country.</p>
     <h3>Your rights</h3><p>You can edit your profile, download your data and request deletion of your account from Settings. Deleting posts removes them from the platform; backups are overwritten on a regular cycle.</p>
     <h3>Security and children</h3><p>We use encrypted connections and access controls, but no system is perfectly secure. The platform is not intended for people under 16.</p>
-    <h3>Contact</h3><p>[ADD OFFICIAL CONTACT EMAIL]</p>
+    <h3>Contact</h3><p>terravivaconnect@gmail.com</p>
     <p><Link href="/terms">Terms of Service</Link> · <Link href="/register">Back to sign up</Link></p>
   </div></div>);
 }
