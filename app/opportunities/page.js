@@ -13,19 +13,19 @@ function Inner({ me }) {
   const set = key => e => setF({ ...f, [key]: e.target.value });
   const create = async (e) => { e.preventDefault(); setErr(''); const row = { ...f, poster_id: me.id, deadline: f.deadline || null };
     const { error } = await supabase.from('opportunities').insert(row); if (error) return setErr(error.message); setShow(false); load(); };
-  const del = async (id) => { if (confirm('Remove this opportunity?')) { await supabase.from('opportunities').delete().eq('id', id); load(); } };
-  return (<div><div style={{ display: 'flex', justifyContent: 'space-between' }}><h2>{t("Opportunities")}</h2><button onClick={() => setShow(!show)}>{show ? 'Close' : '+ Post opportunity'}</button></div>
+  const del = async (id) => { if (confirm(t("Remove this opportunity?"))) { await supabase.from('opportunities').delete().eq('id', id); load(); } };
+  return (<div><div style={{ display: 'flex', justifyContent: 'space-between' }}><h2>{t("Opportunities")}</h2><button onClick={() => setShow(!show)}>{show ? t("Close") : t("+ Post opportunity")}</button></div>
     {show && <form className="card" onSubmit={create}>{err && <div className="err">{err}</div>}
-      <input placeholder="Title" value={f.title} onChange={set('title')} required /><div className="row"><input placeholder="Organization" value={f.organization} onChange={set('organization')} />
-        <select value={f.kind} onChange={set('kind')}>{KINDS.slice(1).map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
-      <div className="row"><input placeholder="Location" value={f.location} onChange={set('location')} /><input type="date" value={f.deadline} onChange={set('deadline')} /></div>
-      <textarea rows={4} placeholder="Description" value={f.description} onChange={set('description')} /><input placeholder="Apply link or email" value={f.apply_url} onChange={set('apply_url')} /><button>{t("Publish")}</button></form>}
-    <div className="tabs">{KINDS.map(([v, l]) => <button key={v} className={k === v ? 'on' : ''} onClick={() => setK(v)}>{l}</button>)}</div>
-    {!list.length && <div className="card muted">No opportunities yet.</div>}
+      <input placeholder={t("Title")} value={f.title} onChange={set('title')} required /><div className="row"><input placeholder={t("Organization")} value={f.organization} onChange={set('organization')} />
+        <select value={f.kind} onChange={set('kind')}>{KINDS.slice(1).map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}</select></div>
+      <div className="row"><input placeholder={t("Location")} value={f.location} onChange={set('location')} /><input type="date" value={f.deadline} onChange={set('deadline')} /></div>
+      <textarea rows={4} placeholder={t("Description")} value={f.description} onChange={set('description')} /><input placeholder={t("Apply link or email")} value={f.apply_url} onChange={set('apply_url')} /><button>{t("Publish")}</button></form>}
+    <div className="tabs">{KINDS.map(([v, l]) => <button key={v} className={k === v ? 'on' : ''} onClick={() => setK(v)}>{t(l)}</button>)}</div>
+    {!list.length && <div className="card muted">{t("No opportunities yet.")}</div>}
     {list.map(o => (<div className="card" key={o.id}><h3>{o.title}</h3><div className="muted">{o.organization} {o.location && '· ' + o.location}</div>
       <span className="badge b-pro" style={{ marginLeft: 0 }}>{o.kind}</span> {o.deadline && <small className="muted">Deadline: {o.deadline}</small>}
       <p className="post-body">{o.description}</p>
       <div style={{ display: 'flex', gap: '.5rem' }}>{o.apply_url && <a className="btn" href={/^https?:/.test(o.apply_url) ? o.apply_url : 'mailto:' + o.apply_url} target="_blank" rel="noreferrer">{t("Apply")}</a>}
-        {o.poster_id === me.id && <button className="link" onClick={() => del(o.id)}>🗑 Remove</button>}</div></div>))}</div>);
+        {o.poster_id === me.id && <button className="link" onClick={() => del(o.id)}>{t("Remove")}</button>}</div></div>))}</div>);
 }
 export default function Opportunities() { return <Shell>{me => <Inner me={me} />}</Shell>; }
