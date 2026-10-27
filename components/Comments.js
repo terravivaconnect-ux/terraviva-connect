@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase, fullName, timeAgo } from '@/lib/supabase';
 import Avatar from './Avatar';
 import RichText from './RichText';
+import AutoTextarea from './AutoTextarea';
 import { useT } from '@/lib/i18n';
 
 export default function Comments({ postId, me, onAdded }) {
@@ -25,8 +26,10 @@ export default function Comments({ postId, me, onAdded }) {
     load();
   };
   const del = async (c) => { if (confirm(t("Delete this comment?"))) { await supabase.from('comments').delete().eq('id', c.id); load(); } };
+  const sendNew = () => { add(txt); setTxt(''); };
   const row = (c, topId) => {
     const liked = c.comment_likes.some(l => l.user_id === me.id);
+    const sendReply = () => { add(rt, topId); setReply(null); setRt(''); };
     return (<div className="cmt" key={c.id}><Avatar p={c.author} size={30} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="bub"><b>{fullName(c.author)}</b> <small className="muted">{timeAgo(c.created_at)}</small><div><RichText text={c.body} /></div></div>
@@ -35,14 +38,14 @@ export default function Comments({ postId, me, onAdded }) {
           <button className="link" onClick={() => { setReply(c.id); setRt('@' + c.author.username + ' '); }}>{t("Reply")}</button>
           {c.author_id === me.id && <button className="link" onClick={() => del(c)}>{t("Delete")}</button>}
         </div>
-        {reply === c.id && <form onSubmit={(e) => { e.preventDefault(); add(rt, topId); setReply(null); setRt(''); }} style={{ display: 'flex', gap: '.5rem' }}>
-          <input style={{ margin: 0 }} autoFocus value={rt} onChange={e => setRt(e.target.value)} maxLength={2000} /><button>{t("Reply")}</button></form>}
+        {reply === c.id && <form onSubmit={(e) => { e.preventDefault(); sendReply(); }} style={{ display: 'flex', gap: '.5rem', alignItems: 'flex-end' }}>
+          <AutoTextarea autoFocus value={rt} onChange={setRt} onSubmit={sendReply} maxLength={2000} style={{ flex: 1 }} /><button>{t("Reply")}</button></form>}
         {!c.parent_id && list.filter(r => r.parent_id === c.id).map(r => row(r, c.id))}
       </div></div>);
   };
   return (<div>
     {list.filter(c => !c.parent_id).map(c => row(c, c.id))}
-    <form onSubmit={(e) => { e.preventDefault(); add(txt); setTxt(''); }} style={{ display: 'flex', gap: '.5rem', marginTop: '.5rem' }}>
-      <input style={{ margin: 0 }} placeholder={t("Write a comment… use @username to mention")} value={txt} onChange={e => setTxt(e.target.value)} maxLength={2000} /><button>{t("Send")}</button></form>
+    <form onSubmit={(e) => { e.preventDefault(); sendNew(); }} style={{ display: 'flex', gap: '.5rem', marginTop: '.5rem', alignItems: 'flex-end' }}>
+      <AutoTextarea value={txt} onChange={setTxt} onSubmit={sendNew} placeholder={t("Write a comment… use @username to mention")} maxLength={2000} style={{ flex: 1 }} /><button>{t("Send")}</button></form>
   </div>);
 }
