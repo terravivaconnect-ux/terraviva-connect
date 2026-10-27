@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useT } from '@/lib/i18n';
 
 const ext = (m) => ((m.name || m.url).split('?')[0].split('.').pop() || '').toLowerCase();
 const isOffice = (m) => ['doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx'].includes(ext(m));
@@ -7,6 +8,7 @@ const docSrc = (m) => ext(m) === 'pdf' ? m.url + '#toolbar=1&navpanes=0&view=Fit
   : isOffice(m) ? 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(m.url) : null;
 
 export default function MediaGallery({ media }) {
+  const { t } = useT();
   const [lb, setLb] = useState(null);
   const [full, setFull] = useState(null);
   const [closed, setClosed] = useState({});
@@ -36,9 +38,9 @@ export default function MediaGallery({ media }) {
         <div className="doc-h">
           <span>{ext(m) === 'pdf' ? '📕' : '📄'} <b>{m.name || 'Document'}</b></span>
           <span>
-            {src && <button type="button" className="link" onClick={() => setClosed({ ...closed, [m.url]: open })}>{open ? 'Hide' : 'Show'}</button>}
-            {src && <button type="button" className="link" onClick={() => setFull(src)}>⤢ Full screen</button>}
-            <a className="btn sec" style={{ padding: '.2rem .7rem' }} href={m.url} target="_blank" rel="noreferrer">Download</a>
+            {src && <button type="button" className="link" onClick={() => setClosed({ ...closed, [m.url]: open })}>{open ? t("Hide") : t("Show")}</button>}
+            {src && <button type="button" className="link" onClick={() => setFull(src)}>{t("⤢ Full screen")}</button>}
+            <a className="btn sec" style={{ padding: '.2rem .7rem' }} href={m.url} target="_blank" rel="noreferrer">{t("Download")}</a>
           </span>
         </div>
         {open && <iframe className="doc-f" src={src} title={m.name || 'document'} loading="lazy" />}
