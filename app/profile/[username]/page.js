@@ -40,13 +40,13 @@ function Inner({ me }) {
     }
   };
   useEffect(() => { load(); }, [username]);
-  if (nf) return <div className="card">Profile not found or not visible to you.</div>;
+  if (nf) return <div className="card">{t("Profile not found or not visible to you.")}</div>;
   if (!p) return <p className="muted">{t("Loading…")}</p>;
   const mine = p.id === me.id;
   const follow = async () => { rel.following ? await supabase.from('follows').delete().match({ follower_id: me.id, following_id: p.id }) : await supabase.from('follows').insert({ follower_id: me.id, following_id: p.id }); load(); };
   const connect = async () => { await supabase.from('connections').insert({ requester_id: me.id, addressee_id: p.id }); load(); };
-  const block = async () => { if (!confirm('Block this user?')) return; rel.blocked ? await supabase.from('blocks').delete().match({ blocker_id: me.id, blocked_id: p.id }) : await supabase.from('blocks').insert({ blocker_id: me.id, blocked_id: p.id }); load(); };
-  const report = async () => { const reason = prompt('Reason for report?'); if (reason) { await supabase.from('reports').insert({ reporter_id: me.id, target_type: 'user', target_id: p.id, reason }); alert('Reported.'); } };
+  const block = async () => { if (!confirm(t("Block this user?"))) return; rel.blocked ? await supabase.from('blocks').delete().match({ blocker_id: me.id, blocked_id: p.id }) : await supabase.from('blocks').insert({ blocker_id: me.id, blocked_id: p.id }); load(); };
+  const report = async () => { const reason = prompt(t("Reason for report?")); if (reason) { await supabase.from('reports').insert({ reporter_id: me.id, target_type: 'user', target_id: p.id, reason }); alert(t("Reported.")); } };
   const setK = k => e => setIt({ ...it, [k]: e.target.value });
   const addItem = async (e) => { e.preventDefault();
     const row = { user_id: me.id, kind: it.kind, title: it.title.trim(), organization: it.organization || null, description: it.description || null, start_year: it.start_year ? +it.start_year : null, end_year: it.end_year ? +it.end_year : null };
@@ -67,41 +67,41 @@ function Inner({ me }) {
         <div style={{ marginTop: -50 }}><Avatar p={p} size={90} /></div>
         <h2 style={{ marginTop: '.5rem' }}>{fullName(p)} <Badges p={p} /></h2>
         <div>{p.headline}</div><small className="muted">@{p.username} · {[p.district, p.region, p.country].filter(Boolean).join(', ')}</small>
-        <div className="muted" style={{ margin: '.4rem 0' }}>{rel.followers} followers · {rel.connections} connections{mine && ` · 👁 ${views} profile views (30 days)`}</div>
+        <div className="muted" style={{ margin: '.4rem 0' }}>{rel.followers} {t("followers")} · {rel.connections} {t("connections")}{mine && ` · 👁 ${views} profile views (30 days)`}</div>
         {p.bio && <p>{p.bio}</p>}{p.interest && <span className="badge b-pro" style={{ marginLeft: 0 }}>{p.interest}</span>}
         {mine ? <div style={{ marginTop: '.8rem' }}><Link className="btn" href="/settings">{t("Edit profile")}</Link></div> :
           <div style={{ marginTop: '.8rem', display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
-            {!rel.conn && <button onClick={connect}>{t("Connect")}</button>}{rel.conn?.status === 'pending' && <button className="sec" disabled>Request pending</button>}
-            <button className="sec" onClick={follow}>{rel.following ? 'Following' : 'Follow'}</button>
+            {!rel.conn && <button onClick={connect}>{t("Connect")}</button>}{rel.conn?.status === 'pending' && <button className="sec" disabled>{t("Request pending")}</button>}
+            <button className="sec" onClick={follow}>{rel.following ? t("Following") : t("Follow")}</button>
             <Link className="btn sec" href={`/messages?to=${p.id}`}>{t("Message")}</Link>
-            <button className="link" onClick={block}>{rel.blocked ? 'Unblock' : 'Block'}</button><button className="link" onClick={report}>{t("Report")}</button></div>}
+            <button className="link" onClick={block}>{rel.blocked ? t("Unblock") : t("Block")}</button><button className="link" onClick={report}>{t("Report")}</button></div>}
       </div></div>
 
     {(items.length > 0 || mine) && <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}><h3>{t("Background")}</h3>{mine && <button className="sec" onClick={() => setAdding(!adding)}>{adding ? 'Close' : '+ Add'}</button>}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}><h3>{t("Background")}</h3>{mine && <button className="sec" onClick={() => setAdding(!adding)}>{adding ? t("Close") : t("+ Add")}</button>}</div>
       {adding && <form onSubmit={addItem} style={{ marginBottom: '.8rem' }}>
         <select value={it.kind} onChange={setK('kind')}>{KINDS.map(([v, l]) => <option key={v} value={v}>{l.replace(/s$/, '')}</option>)}</select>
-        <input placeholder={it.kind === 'skill' ? 'Skill (e.g. Agroforestry)' : 'Title / Degree / Certificate'} value={it.title} onChange={setK('title')} required />
-        {it.kind !== 'skill' && <><input placeholder="Organization / School" value={it.organization} onChange={setK('organization')} />
-          <div className="row"><input type="number" placeholder="Start year" value={it.start_year} onChange={setK('start_year')} /><input type="number" placeholder="End year (blank = present)" value={it.end_year} onChange={setK('end_year')} /></div>
-          <textarea rows={2} placeholder="Description" value={it.description} onChange={setK('description')} /></>}
+        <input placeholder={it.kind === 'skill' ? t("Skill (e.g. Agroforestry)") : t("Title / Degree / Certificate")} value={it.title} onChange={setK('title')} required />
+        {it.kind !== 'skill' && <><input placeholder={t("Organization / School")} value={it.organization} onChange={setK('organization')} />
+          <div className="row"><input type="number" placeholder={t("Start year")} value={it.start_year} onChange={setK('start_year')} /><input type="number" placeholder={t("End year (blank = present)")} value={it.end_year} onChange={setK('end_year')} /></div>
+          <textarea rows={2} placeholder={t("Description")} value={it.description} onChange={setK('description')} /></>}
         <button>{t("Save")}</button></form>}
       {KINDS.map(([k, label]) => { const list = items.filter(x => x.kind === k); if (!list.length) return null;
-        return (<div className="sect" key={k}><h4>{label}</h4>
+        return (<div className="sect" key={k}><h4>{t(label)}</h4>
           {k === 'skill' ? <div>{list.map(x => <span className="skill" key={x.id}>{x.title}<small> {x.skill_endorsements?.length || 0}</small>{!mine && <button className="link" style={{ padding: '0 .3rem' }} title="Endorse" onClick={() => endorse(x)}>{endorsed(x) ? '✓' : '+'}</button>}{mine && <button className="link" style={{ padding: '0 .3rem' }} onClick={() => delItem(x.id)}>✕</button>}</span>)}</div>
             : list.map(x => <div className="item" key={x.id}><div><b>{x.title}</b><div className="muted">{x.organization} {(x.start_year || x.end_year) && `· ${x.start_year || ''} – ${x.end_year || 'Present'}`}</div>{x.description && <div>{x.description}</div>}</div>
               {mine && <button className="link" onClick={() => delItem(x.id)}>🗑</button>}</div>)}</div>); })}
-      {!items.length && <p className="muted">Add your experience, education and skills.</p>}
+      {!items.length && <p className="muted">{t("Add your experience, education and skills.")}</p>}
     </div>}
 
     <div className="card"><h3>{t("Recommendations")}</h3>
-      {!recs.length && <p className="muted">No recommendations yet.</p>}
-      {recs.map(r => <div className="item" key={r.id}><div><b>{fullName(r.author)}</b> {r.status === 'pending' && <span className="badge b-org">pending approval</span>}<div>{r.body}</div></div>
-        <div>{mine && r.status === 'pending' && <button onClick={() => approveRec(r)}>Show on profile</button>}{(mine || r.author_id === me.id) && <button className="link" onClick={() => delRec(r)}>🗑</button>}</div></div>)}
-      {!mine && !myRec && <form onSubmit={sendRec} style={{ marginTop: '.6rem' }}><textarea rows={3} minLength={10} maxLength={1500} placeholder="Write a recommendation (min 10 characters)" value={recTxt} onChange={e => setRecTxt(e.target.value)} required /><button>Send recommendation</button></form>}
+      {!recs.length && <p className="muted">{t("No recommendations yet.")}</p>}
+      {recs.map(r => <div className="item" key={r.id}><div><b>{fullName(r.author)}</b> {r.status === 'pending' && <span className="badge b-org">{t("pending approval")}</span>}<div>{r.body}</div></div>
+        <div>{mine && r.status === 'pending' && <button onClick={() => approveRec(r)}>{t("Show on profile")}</button>}{(mine || r.author_id === me.id) && <button className="link" onClick={() => delRec(r)}>🗑</button>}</div></div>)}
+      {!mine && !myRec && <form onSubmit={sendRec} style={{ marginTop: '.6rem' }}><textarea rows={3} minLength={10} maxLength={1500} placeholder={t("Write a recommendation (min 10 characters)")} value={recTxt} onChange={e => setRecTxt(e.target.value)} required /><button>{t("Send recommendation")}</button></form>}
     </div>
 
-    <h3>{t("Posts")}</h3>{!posts.length && <p className="muted">No posts yet.</p>}{posts.map(x => <PostCard key={x.id} post={x} me={me} onChange={load} />)}
+    <h3>{t("Posts")}</h3>{!posts.length && <p className="muted">{t("No posts yet.")}</p>}{posts.map(x => <PostCard key={x.id} post={x} me={me} onChange={load} />)}
   </div>);
 }
 export default function Profile() { return <Shell>{me => <Inner me={me} />}</Shell>; }
