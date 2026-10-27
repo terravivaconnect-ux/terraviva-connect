@@ -47,13 +47,13 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
     setSaved(!saved);
   };
   const report = async () => {
-    const reason = prompt('Why are you reporting this post?'); if (!reason) return;
-    await supabase.from('reports').insert({ reporter_id: me.id, target_type: 'post', target_id: post.id, reason }); alert('Thank you. Our moderators will review it.');
+    const reason = prompt(t("Why are you reporting this post?")); if (!reason) return;
+    await supabase.from('reports').insert({ reporter_id: me.id, target_type: 'post', target_id: post.id, reason }); alert(t("Thank you. Our moderators will review it."));
   };
-  const del = async () => { if (confirm('Delete this post?')) { await supabase.from('posts').delete().eq('id', post.id); onChange?.(); } };
-  const share = () => { navigator.clipboard?.writeText(`${location.origin}/post/${post.id}`); alert('Link copied'); };
+  const del = async () => { if (confirm(t("Delete this post?"))) { await supabase.from('posts').delete().eq('id', post.id); onChange?.(); } };
+  const share = () => { navigator.clipboard?.writeText(`${location.origin}/post/${post.id}`); alert(t("Link copied")); };
   const repost = async () => {
-    const c = prompt('Add your thoughts (optional):'); if (c === null) return;
+    const c = prompt(t("Add your thoughts (optional):")); if (c === null) return;
     const { error } = await supabase.from('posts').insert({ author_id: me.id, body: c.trim() || '🔁 Reposted', repost_of: post.repost_of || post.id });
     if (error) alert(error.message); else onChange?.();
   };
@@ -84,7 +84,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
         {opts.map(op => { const n = votes.filter(v => v.option_id === op.id).length; const pct = votes.length ? Math.round(n * 100 / votes.length) : 0;
           return myVote ? <div key={op.id} className="bar"><div className="fill" style={{ width: pct + '%' }} /><span>{op.label}{myVote.option_id === op.id ? ' ✓' : ''}</span><b>{pct}%</b></div>
             : <button key={op.id} type="button" className="sec opt" onClick={() => vote(op)}>{op.label}</button>; })}
-        <small className="muted">{votes.length} votes</small></div>}
+        <small className="muted">{votes.length} {t("votes")}</small></div>}
 
       <MediaGallery media={post.post_media} />
 
@@ -96,7 +96,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
           <span className="emo">{kinds.map(k => <span key={k}>{EMOJI[k]}</span>)}</span>
           <span className="faces">{rx.slice(0, 5).map(r => <span key={r.user_id} title={fullName(r.user)}><Avatar p={r.user} size={22} /></span>)}</span>
           <small className="muted">{rx.length}</small></div>}
-        <small className="muted">{ccount} comments</small></div>}
+        <small className="muted">{ccount} {t("comments")}</small></div>}
 
       <div className="actions">
         <div className="rx-wrap" onMouseEnter={() => setPicker(true)} onMouseLeave={() => setPicker(false)}>
