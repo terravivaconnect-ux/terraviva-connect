@@ -35,16 +35,16 @@ export default function Register() {
         <input placeholder={t("Telephone (optional)")} value={f.phone} onChange={set('phone')} />
         <div className="row"><input placeholder={t("Country")} value={f.country} onChange={set('country')} required /><input placeholder={t("Region / State")} value={f.region} onChange={set('region')} /></div>
         <input placeholder={t("District (optional)")} value={f.district} onChange={set('district')} />
-        <input placeholder="Headline, e.g. Agronomist | Farmer | Student" value={f.headline} onChange={set('headline')} />
+        <input placeholder={t("Headline, e.g. Agronomist | Farmer | Student")} value={f.headline} onChange={set('headline')} />
         <select value={f.interest} onChange={set('interest')}>{INTERESTS.map(i => <option key={i}>{i}</option>)}</select>
         <select value={f.account_type} onChange={set('account_type')}>
-          <option value="general">General member</option><option value="professional">Professional</option>
-          <option value="organization">Organization (verification required)</option><option value="donor">Donor / Development partner (verification required)</option></select>
+          <option value="general">{t("General member")}</option><option value="professional">{t("Professional")}</option>
+          <option value="organization">{t("Organization (verification required)")}</option><option value="donor">{t("Donor / Development partner (verification required)")}</option></select>
         <PasswordInput value={f.password} onChange={set('password')} placeholder={t("Password (min 8 characters)")} autoComplete="new-password" />
         <label style={{ display: 'flex', gap: '.5rem', fontSize: '.9rem', margin: '.3rem 0 1rem' }}>
           <input type="checkbox" style={{ width: 'auto', margin: 0 }} checked={f.agree} onChange={set('agree')} />
           <span>I accept the <Link href="/terms" target="_blank">{t("Terms of Service")}</Link> and <Link href="/privacy" target="_blank">{t("Privacy Policy")}</Link>.</span></label>
-        <button style={{ width: '100%' }} disabled={busy}>{busy ? 'Creating…' : 'Create account'}</button>
+        <button style={{ width: '100%' }} disabled={busy}>{busy ? 'Creating…' : t("Create account")}</button>
       </form>
       <p className="muted">Already a member? <Link href="/login">{t("Log in")}</Link></p>
     </div></div>
