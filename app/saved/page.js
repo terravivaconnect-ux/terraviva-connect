@@ -17,7 +17,7 @@ function Inner({ me }) {
   };
   useEffect(() => { load(); }, []);
   return (<div><h2>{t("Saved posts")}</h2>{posts === null && <p className="muted">{t("Loading…")}</p>}
-    {posts && !posts.length && <div className="card muted">Nothing saved yet. Use 🔖 Save on any post.</div>}
+    {posts && !posts.length && <div className="card muted">{t("Nothing saved yet. Use 🔖 Save on any post.")}</div>}
     {posts && posts.map(p => <PostCard key={p.id} post={p} me={me} savedInit onChange={load} />)}</div>);
 }
 export default function Saved() { return <Shell>{me => <Inner me={me} />}</Shell>; }
