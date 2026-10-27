@@ -9,7 +9,8 @@ import { useT } from '@/lib/i18n';
 const TABS = { stats: 'Statistics', reports: 'Reports', users: 'Users', beneficiaries: 'Beneficiaries', communities: 'Communities' };
 
 function Inner({ me }) {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const L = (en, sw) => (lang === 'sw' ? sw : en);
   const [tab, setTab] = useState('stats');
   const [reports, setReports] = useState([]);
   const [users, setUsers] = useState([]);
@@ -43,6 +44,13 @@ function Inner({ me }) {
   const upd = async (u, patch, label) => {
     await supabase.from('profiles').update(patch).eq('id', u.id);
     await log(label, 'user', u.id, patch);
+    load();
+  };
+
+  const delUser = async (uid, name) => {
+    if (!confirm(L(`Permanently delete ${name} and all their content? This cannot be undone.`, `Unataka kumfuta ${name} na maudhui yake yote kabisa? Hili haliwezi kurudishwa.`))) return;
+    const { error } = await supabase.rpc('admin_delete_user', { uid });
+    if (error) return alert(error.message);
     load();
   };
 
@@ -82,6 +90,9 @@ function Inner({ me }) {
               <b>{r.target_type}</b> · <span className="badge b-org">{r.status}</span>{' '}
               <small className="muted">by @{r.reporter?.username} · {timeAgo(r.created_at)}</small>
               <p>{r.reason}</p>
+              {r.reason === 'ACCOUNT DELETION REQUEST' && isAdmin && r.target_id !== me.id && (
+                <button className="red" onClick={() => delUser(r.target_id, '@' + r.reporter?.username)}>{L('Delete account permanently', 'Futa akaunti kabisa')}</button>
+              )}
               {r.status === 'open' && (
                 <div>
                   <button className="red" onClick={() => act(r, 'actioned')}>{t("Remove content")}</button>{' '}
@@ -116,6 +127,7 @@ function Inner({ me }) {
                   <button className="red" onClick={() => upd(u, { status: u.status === 'suspended' ? 'active' : 'suspended' }, 'toggle_suspend')}>
                     {u.status === 'suspended' ? t("Reactivate") : t("Suspend")}
                   </button>
+                  <button className="red" onClick={() => delUser(u.id, fullName(u))}>{L('Delete permanently', 'Futa kabisa')}</button>
                 </div>
               )}
             </div>
