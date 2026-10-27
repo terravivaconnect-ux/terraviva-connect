@@ -4,8 +4,12 @@ import Shell from '@/components/Shell';
 import AdminStats from '@/components/AdminStats';
 import AdminBeneficiaries from '@/components/AdminBeneficiaries';
 import { supabase, fullName, timeAgo } from '@/lib/supabase';
+import { useT } from '@/lib/i18n';
+
+const TABS = { stats: 'Statistics', reports: 'Reports', users: 'Users', beneficiaries: 'Beneficiaries', communities: 'Communities' };
 
 function Inner({ me }) {
+  const { t } = useT();
   const [tab, setTab] = useState('stats');
   const [reports, setReports] = useState([]);
   const [users, setUsers] = useState([]);
@@ -28,8 +32,8 @@ function Inner({ me }) {
 
   const act = async (r, status) => {
     if (status === 'actioned') {
-      const t = r.target_type === 'post' ? 'posts' : r.target_type === 'comment' ? 'comments' : null;
-      if (t) await supabase.from(t).update({ is_removed: true }).eq('id', r.target_id);
+      const table = r.target_type === 'post' ? 'posts' : r.target_type === 'comment' ? 'comments' : null;
+      if (table) await supabase.from(table).update({ is_removed: true }).eq('id', r.target_id);
     }
     await supabase.from('reports').update({ status }).eq('id', r.id);
     await log('report_' + status, r.target_type, r.target_id, { report: r.id });
@@ -58,11 +62,11 @@ function Inner({ me }) {
 
   return (
     <div>
-      <h2>Administration</h2>
+      <h2>{t("Administration")}</h2>
       <div className="tabs">
-        {['stats', 'reports', 'users', 'beneficiaries', 'communities'].filter(t => isAdmin || t !== 'beneficiaries').map(t => (
-          <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
-            {t[0].toUpperCase() + t.slice(1)}
+        {Object.keys(TABS).filter(k => isAdmin || k !== 'beneficiaries').map(k => (
+          <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
+            {t(TABS[k])}
           </button>
         ))}
       </div>
@@ -72,7 +76,7 @@ function Inner({ me }) {
 
       {tab === 'reports' && (
         <div>
-          {!reports.length && <div className="card muted">No reports.</div>}
+          {!reports.length && <div className="card muted">{t("No reports.")}</div>}
           {reports.map(r => (
             <div className="card" key={r.id}>
               <b>{r.target_type}</b> · <span className="badge b-org">{r.status}</span>{' '}
@@ -80,8 +84,8 @@ function Inner({ me }) {
               <p>{r.reason}</p>
               {r.status === 'open' && (
                 <div>
-                  <button className="red" onClick={() => act(r, 'actioned')}>Remove content</button>{' '}
-                  <button className="sec" onClick={() => act(r, 'dismissed')}>Dismiss</button>
+                  <button className="red" onClick={() => act(r, 'actioned')}>{t("Remove content")}</button>{' '}
+                  <button className="sec" onClick={() => act(r, 'dismissed')}>{t("Dismiss")}</button>
                 </div>
               )}
             </div>
@@ -98,19 +102,19 @@ function Inner({ me }) {
               {isAdmin && u.id !== me.id && (
                 <div style={{ marginTop: '.5rem', display: 'flex', gap: '.4rem', flexWrap: 'wrap' }}>
                   <button className="sec" onClick={() => upd(u, { is_beneficiary_verified: !u.is_beneficiary_verified }, 'toggle_beneficiary')}>
-                    {u.is_beneficiary_verified ? 'Unverify beneficiary' : 'Verify beneficiary'}
+                    {u.is_beneficiary_verified ? t("Unverify beneficiary") : t("Verify beneficiary")}
                   </button>
                   <button className="sec" onClick={() => upd(u, { is_professional_verified: !u.is_professional_verified }, 'toggle_professional')}>
-                    {u.is_professional_verified ? 'Unverify pro' : 'Verify pro'}
+                    {u.is_professional_verified ? t("Unverify pro") : t("Verify pro")}
                   </button>
                   <button className="sec" onClick={() => upd(u, { is_org_verified: !u.is_org_verified }, 'toggle_org')}>
-                    {u.is_org_verified ? 'Unverify org' : 'Verify org'}
+                    {u.is_org_verified ? t("Unverify org") : t("Verify org")}
                   </button>
                   <button className="sec" onClick={() => upd(u, { role: u.role === 'moderator' ? 'member' : 'moderator' }, 'toggle_moderator')}>
-                    {u.role === 'moderator' ? 'Remove moderator' : 'Make moderator'}
+                    {u.role === 'moderator' ? t("Remove moderator") : t("Make moderator")}
                   </button>
                   <button className="red" onClick={() => upd(u, { status: u.status === 'suspended' ? 'active' : 'suspended' }, 'toggle_suspend')}>
-                    {u.status === 'suspended' ? 'Reactivate' : 'Suspend'}
+                    {u.status === 'suspended' ? t("Reactivate") : t("Suspend")}
                   </button>
                 </div>
               )}
@@ -123,15 +127,15 @@ function Inner({ me }) {
         <div>
           {isAdmin && (
             <form className="card" onSubmit={addCom}>
-              <h3>New community</h3>
-              <input placeholder="Name" value={nc.name} onChange={e => setNc({ ...nc, name: e.target.value })} required />
-              <textarea placeholder="Description" value={nc.description} onChange={e => setNc({ ...nc, description: e.target.value })} />
+              <h3>{t("New community")}</h3>
+              <input placeholder={t("Name")} value={nc.name} onChange={e => setNc({ ...nc, name: e.target.value })} required />
+              <textarea placeholder={t("Description")} value={nc.description} onChange={e => setNc({ ...nc, description: e.target.value })} />
               <select value={nc.privacy} onChange={e => setNc({ ...nc, privacy: e.target.value })}>
-                <option value="public">Public</option>
-                <option value="private">Private</option>
-                <option value="restricted">Restricted</option>
+                <option value="public">{t("Public")}</option>
+                <option value="private">{t("Private")}</option>
+                <option value="restricted">{t("Restricted")}</option>
               </select>
-              <button>Create</button>
+              <button>{t("Create")}</button>
             </form>
           )}
           {coms.map(c => (
@@ -140,7 +144,7 @@ function Inner({ me }) {
               <small className="muted">{c.privacy} · {c.is_active ? 'active' : 'inactive'}</small>
               {isAdmin && (
                 <div>
-                  <button className="sec" onClick={() => toggleCom(c)}>{c.is_active ? 'Deactivate' : 'Activate'}</button>
+                  <button className="sec" onClick={() => toggleCom(c)}>{c.is_active ? t("Deactivate") : t("Activate")}</button>
                 </div>
               )}
             </div>
