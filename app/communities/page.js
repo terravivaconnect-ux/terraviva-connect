@@ -33,20 +33,20 @@ function Inner({ me }) {
     const ok = mem[sel.id]?.status === 'approved';
     return (<div><button className="sec" onClick={() => setSel(null)}>{t("← All communities")}</button>
       <div className="hero" style={{ marginTop: '.8rem' }}><h2>{sel.name}</h2><div>{sel.description}</div></div>
-      {isCA(sel) && pending.length > 0 && <div className="card"><h3>Join requests ({pending.length})</h3>
+      {isCA(sel) && pending.length > 0 && <div className="card"><h3>{t("Join requests")} ({pending.length})</h3>
         {pending.map(p => <div className="post-h" key={p.user_id}><Avatar p={p.user} /><div className="meta"><b>{fullName(p.user)}</b><small>@{p.user?.username}</small></div>
           <button onClick={() => decide(sel, p.user_id, true)}>{t("Accept")}</button> <button className="sec" onClick={() => decide(sel, p.user_id, false)}>{t("Decline")}</button></div>)}</div>}
-      {sel.privacy !== 'public' && !ok && mem[sel.id]?.status !== 'pending' && <div className="card">This is a {sel.privacy} community. <button onClick={() => join(sel)}>Request to join</button></div>}
-      {mem[sel.id]?.status === 'pending' && <div className="card muted">Your request is awaiting approval.</div>}
+      {sel.privacy !== 'public' && !ok && mem[sel.id]?.status !== 'pending' && <div className="card">This is a {sel.privacy} community. <button onClick={() => join(sel)}>{t("Request to join")}</button></div>}
+      {mem[sel.id]?.status === 'pending' && <div className="card muted">{t("Your request is awaiting approval.")}</div>}
       {(sel.privacy === 'public' || ok) && <>
-        {sel.privacy === 'public' && !ok && <div className="card"><button onClick={() => join(sel)}>Join to post</button></div>}
+        {sel.privacy === 'public' && !ok && <div className="card"><button onClick={() => join(sel)}>{t("Join to post")}</button></div>}
         <Feed me={me} communityId={sel.id} canPost={ok} />
-        {ok && <button className="link" onClick={() => leave(sel)}>Leave community</button>}</>}
+        {ok && <button className="link" onClick={() => leave(sel)}>{t("Leave community")}</button>}</>}
     </div>);
   }
   return (<div><h2>{t("Communities")}</h2><div className="grid">{list.map(c => (
     <div className="card" key={c.id}><h3>{c.name}</h3><p className="muted">{c.description}</p><small className="badge b-pro" style={{ marginLeft: 0 }}>{c.privacy}</small>
       <div style={{ marginTop: '.7rem', display: 'flex', gap: '.5rem' }}><button onClick={() => setSel(c)}>{t("Open")}</button>
-        {!mem[c.id] ? <button className="sec" onClick={() => join(c)}>{c.privacy === 'public' ? 'Join' : 'Request'}</button> : <small className="muted" style={{ alignSelf: 'center' }}>{mem[c.id].status === 'approved' ? t("✓ Member") : 'Pending'}</small>}</div></div>))}</div></div>);
+        {!mem[c.id] ? <button className="sec" onClick={() => join(c)}>{c.privacy === 'public' ? t("Join") : t("Request")}</button> : <small className="muted" style={{ alignSelf: 'center' }}>{mem[c.id].status === 'approved' ? t("✓ Member") : t("Pending")}</small>}</div></div>))}</div></div>);
 }
 export default function Communities() { return <Shell>{me => <Inner me={me} />}</Shell>; }
