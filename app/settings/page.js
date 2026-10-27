@@ -18,25 +18,25 @@ function Inner({ me }) {
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'terraviva-my-data.json'; a.click();
   };
   const requestDelete = async () => {
-    if (!confirm('Request permanent deletion of your account and data? Your account will be deactivated now and an administrator will delete it.')) return;
+    if (!confirm(t("Request permanent deletion of your account and data? Your account will be deactivated now and an administrator will delete it."))) return;
     await supabase.from('reports').insert({ reporter_id: me.id, target_type: 'user', target_id: me.id, reason: 'ACCOUNT DELETION REQUEST' });
     await supabase.from('profiles').update({ status: 'deactivated' }).eq('id', me.id); await supabase.auth.signOut(); location.href = '/login';
   };
-  const deactivate = async () => { if (confirm('Deactivate your account? You can ask an administrator to reactivate it.')) { await supabase.from('profiles').update({ status: 'deactivated' }).eq('id', me.id); await supabase.auth.signOut(); location.href = '/login'; } };
+  const deactivate = async () => { if (confirm(t("Deactivate your account? You can ask an administrator to reactivate it."))) { await supabase.from('profiles').update({ status: 'deactivated' }).eq('id', me.id); await supabase.auth.signOut(); location.href = '/login'; } };
   return (<div><h2>{t("Settings")}</h2>{err && <div className="err">{err}</div>}{msg && <div className="ok">{msg}</div>}
     <form className="card" onSubmit={save}><h3>{t("Profile")}</h3>
-      <label>Profile photo <input type="file" accept="image/*" onChange={img('avatar_url', 'avatars')} /></label>
-      <label>Cover photo <input type="file" accept="image/*" onChange={img('cover_url', 'avatars')} /></label>
+      <label>{t("Profile photo")} <input type="file" accept="image/*" onChange={img('avatar_url', 'avatars')} /></label>
+      <label>{t("Cover photo")} <input type="file" accept="image/*" onChange={img('cover_url', 'avatars')} /></label>
       <div className="row"><input placeholder={t("First name")} value={f.first_name} onChange={set('first_name')} required /><input placeholder={t("Last name")} value={f.last_name} onChange={set('last_name')} required /></div>
-      <input placeholder="Headline" value={f.headline} onChange={set('headline')} /><textarea rows={4} placeholder="About you" value={f.bio} onChange={set('bio')} />
-      <div className="row"><input placeholder={t("Country")} value={f.country} onChange={set('country')} /><input placeholder="Region" value={f.region} onChange={set('region')} /><input placeholder="District" value={f.district} onChange={set('district')} /></div>
-      <input placeholder="Phone (never shown publicly)" value={f.phone} onChange={set('phone')} />
-      <label>Who can see my profile?<select value={f.visibility} onChange={set('visibility')}><option value="public">Public</option><option value="members">Registered members only</option><option value="connections">Connections only</option><option value="private">Private</option></select></label>
+      <input placeholder={t("Headline")} value={f.headline} onChange={set('headline')} /><textarea rows={4} placeholder={t("About you")} value={f.bio} onChange={set('bio')} />
+      <div className="row"><input placeholder={t("Country")} value={f.country} onChange={set('country')} /><input placeholder={t("Region")} value={f.region} onChange={set('region')} /><input placeholder={t("District")} value={f.district} onChange={set('district')} /></div>
+      <input placeholder={t("Phone (never shown publicly)")} value={f.phone} onChange={set('phone')} />
+      <label>{t("Who can see my profile?")}<select value={f.visibility} onChange={set('visibility')}><option value="public">{t("Public")}</option><option value="members">{t("Registered members only")}</option><option value="connections">{t("Connections only")}</option><option value="private">{t("Private")}</option></select></label>
       <button>{t("Save changes")}</button></form>
-    <form className="card" onSubmit={chpw}><h3>{t("Change password")}</h3><PasswordInput value={pw} onChange={e => setPw(e.target.value)} placeholder="New password" autoComplete="new-password" /><button>{t("Update password")}</button></form>
-    <div className="card"><h3>Your data and account</h3>
-      <button className="sec" onClick={exportData}>⬇ Download my data</button>{' '}
-      <button className="red" onClick={deactivate}>Deactivate account</button>{' '}
-      <button className="red" onClick={requestDelete}>Request permanent deletion</button></div></div>);
+    <form className="card" onSubmit={chpw}><h3>{t("Change password")}</h3><PasswordInput value={pw} onChange={e => setPw(e.target.value)} placeholder={t("New password")} autoComplete="new-password" /><button>{t("Update password")}</button></form>
+    <div className="card"><h3>{t("Your data and account")}</h3>
+      <button className="sec" onClick={exportData}>{t("⬇ Download my data")}</button>{' '}
+      <button className="red" onClick={deactivate}>{t("Deactivate account")}</button>{' '}
+      <button className="red" onClick={requestDelete}>{t("Request permanent deletion")}</button></div></div>);
 }
 export default function Settings() { return <Shell>{me => <Inner me={me} />}</Shell>; }
