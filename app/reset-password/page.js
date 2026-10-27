@@ -15,7 +15,7 @@ export default function Reset() {
   };
   return (<div className="auth"><div className="auth-card">
     <img className="logo" src="/logo.png" alt="Terraviva" /><h2>{t("Set a new password")}</h2>
-    {err && <div className="err">{err}</div>}{ok && <div className="ok">Password updated.</div>}
-    <form onSubmit={submit}><PasswordInput value={pw} onChange={e => setPw(e.target.value)} placeholder="New password (min 8 characters)" autoComplete="new-password" />
+    {err && <div className="err">{err}</div>}{ok && <div className="ok">{t("Password updated.")}</div>}
+    <form onSubmit={submit}><PasswordInput value={pw} onChange={e => setPw(e.target.value)} placeholder={t("New password (min 8 characters)")} autoComplete="new-password" />
       <button style={{ width: '100%' }}>{t("Update password")}</button></form></div></div>);
 }
