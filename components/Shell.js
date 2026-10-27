@@ -34,7 +34,7 @@ export default function Shell({ children, staffOnly }) {
   }, [router]);
 
   if (!ready) return <div className="auth"><img src="/logo.png" width="120" alt="Terraviva" /></div>;
-  if (staffOnly && me.role === 'member') return <div className="main">Not authorised.</div>;
+  if (staffOnly && me.role === 'member') return <div className="main">{t("Not authorised.")}</div>;
   const logout = async () => { await supabase.auth.signOut(); router.replace('/login'); };
   const items = [...NAV, [`/profile/${me.username}`, '👤', 'My Profile'], ['/settings', '⚙️', 'Settings']];
   if (me.role !== 'member') items.push(['/admin', '🛡️', 'Admin']);
