@@ -12,7 +12,7 @@ export default function Terms() {
     <h3>6. Verification badges</h3><p>Beneficiary, Professional and Organization badges are granted by administrators after review and may be removed at any time.</p>
     <h3>7. Educational content</h3><p>Information shared by members, including on health, is for general education and is not professional advice.</p>
     <h3>8. Liability</h3><p>The platform is provided as is. Terraviva is not liable for member content or for losses arising from reliance on it.</p>
-    <h3>9. Changes and contact</h3><p>We may update these terms and will show the latest version here. Contact: [ADD OFFICIAL CONTACT EMAIL].</p>
+    <h3>9. Changes and contact</h3><p>We may update these terms and will show the latest version here. Contact: terravivaconnect@gmail.com.</p>
     <p><Link href="/privacy">Privacy Policy</Link> · <Link href="/register">Back to sign up</Link></p>
   </div></div>);
 }
