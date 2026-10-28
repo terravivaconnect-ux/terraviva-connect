@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
@@ -8,14 +8,25 @@ import LangSwitch from '@/components/LangSwitch';
 import { useT } from '@/lib/i18n';
 
 export default function Login() {
-  const router = useRouter(); const { t } = useT();
+  const router = useRouter(); const { t, lang } = useT();
+  const L = (en, sw) => (lang === 'sw' ? sw : en);
   const [email, setEmail] = useState(''); const [pw, setPw] = useState(''); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false);
+  const [unconfirmed, setUnconfirmed] = useState(false); const [wait, setWait] = useState(0); const [info, setInfo] = useState('');
+  useEffect(() => { if (wait <= 0) return; const id = setTimeout(() => setWait(wait - 1), 1000); return () => clearTimeout(id); }, [wait]);
   const submit = async (e) => {
-    e.preventDefault(); setBusy(true); setErr('');
+    e.preventDefault(); setBusy(true); setErr(''); setInfo(''); setUnconfirmed(false);
     const { error } = await supabase.auth.signInWithPassword({ email, password: pw });
     setBusy(false);
-    if (error) return setErr(error.message);
+    if (error) {
+      if (error.code === 'email_not_confirmed' || /not confirmed/i.test(error.message)) { setUnconfirmed(true); return; }
+      return setErr(error.message);
+    }
     router.replace('/');
+  };
+  const resend = async () => {
+    setErr(''); setInfo('');
+    const { error } = await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: window.location.origin + '/login' } });
+    if (error) setErr(error.message); else { setInfo(L('Confirmation email sent again. Check your inbox and the Spam folder.', 'Barua ya uthibitisho imetumwa tena. Angalia Inbox na folda ya Spam.')); setWait(60); }
   };
   return (
     <div className="auth"><div className="auth-card">
@@ -24,6 +35,11 @@ export default function Login() {
       <h2>Terraviva Connect</h2>
       <p className="tag">{t('Connect. Share Knowledge. Empower Communities. Protect Nature.')}</p>
       {err && <div className="err">{err}</div>}
+      {info && <div className="ok">{info}</div>}
+      {unconfirmed && <div className="err">
+        {L('Your email is not confirmed yet. Open the confirmation email we sent you (also check Spam).', 'Barua pepe yako bado haijathibitishwa. Fungua barua ya uthibitisho tuliyokutumia (angalia pia Spam).')}
+        <div style={{ marginTop: '.5rem' }}><button type="button" className="sec" disabled={wait > 0 || !email} onClick={resend}>{wait > 0 ? `${L('Resend in', 'Tuma tena baada ya')} ${wait}s` : L('Resend confirmation email', 'Tuma tena barua ya uthibitisho')}</button></div>
+      </div>}
       <form onSubmit={submit}>
         <input type="email" placeholder={t('Email address')} value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" />
         <PasswordInput value={pw} onChange={e => setPw(e.target.value)} placeholder={t('Password')} autoComplete="current-password" />
