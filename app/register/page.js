@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import PasswordInput from '@/components/PasswordInput';
@@ -7,9 +7,17 @@ import { useT } from '@/lib/i18n';
 
 const INTERESTS = ['Sustainable Agriculture', 'Youth and Women Empowerment', 'Environmental Conservation', 'Reproductive Health Education', 'Climate Change', 'Biodiversity Conservation', 'Research and Innovation', 'Funding and Partnerships'];
 export default function Register() {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const L = (en, sw) => (lang === 'sw' ? sw : en);
   const [f, setF] = useState({ first_name: '', middle_name: '', last_name: '', username: '', email: '', phone: '', country: 'Tanzania', region: '', district: '', headline: '', interest: INTERESTS[0], account_type: 'general', password: '', agree: false });
   const [err, setErr] = useState(''); const [done, setDone] = useState(false); const [busy, setBusy] = useState(false);
+  const [wait, setWait] = useState(0); const [info, setInfo] = useState('');
+  useEffect(() => { if (wait <= 0) return; const id = setTimeout(() => setWait(wait - 1), 1000); return () => clearTimeout(id); }, [wait]);
+  const resend = async () => {
+    setInfo(''); setErr('');
+    const { error } = await supabase.auth.resend({ type: 'signup', email: f.email, options: { emailRedirectTo: window.location.origin + '/login' } });
+    if (error) setErr(error.message); else { setInfo(L('Email sent again.', 'Barua imetumwa tena.')); setWait(60); }
+  };
   const set = (k) => (e) => setF({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value });
   const submit = async (e) => {
     e.preventDefault(); setErr('');
@@ -22,7 +30,11 @@ export default function Register() {
     error ? setErr(error.message) : setDone(true);
   };
   if (done) return (<div className="auth"><div className="auth-card"><img className="logo" src="/logo.png" alt="" /><h2>{t("Check your email")}</h2>
-    <p className="muted">We sent a verification link to <b>{f.email}</b>. Verify your account, then log in.</p><Link className="btn" href="/login">{t("Go to login")}</Link></div></div>);
+    <p className="muted">We sent a verification link to <b>{f.email}</b>. Verify your account, then log in.</p>
+    <p className="muted">{L('Not in your inbox? Check the Spam or Promotions folder. It can take a few minutes.', 'Huoni barua? Angalia folda ya Spam au Promotions. Inaweza kuchukua dakika chache.')}</p>
+    {err && <div className="err">{err}</div>}{info && <div className="ok">{info}</div>}
+    <p><button type="button" className="sec" disabled={wait > 0} onClick={resend}>{wait > 0 ? `${L('Resend in', 'Tuma tena baada ya')} ${wait}s` : L('Resend email', 'Tuma barua tena')}</button></p>
+    <Link className="btn" href="/login">{t("Go to login")}</Link></div></div>);
   return (
     <div className="auth"><div className="auth-card" style={{ maxWidth: 560 }}>
       <img className="logo" src="/logo.png" alt="Terraviva" /><h2>{t("Create your account")}</h2>
@@ -44,7 +56,7 @@ export default function Register() {
         <label style={{ display: 'flex', gap: '.5rem', fontSize: '.9rem', margin: '.3rem 0 1rem' }}>
           <input type="checkbox" style={{ width: 'auto', margin: 0 }} checked={f.agree} onChange={set('agree')} />
           <span>I accept the <Link href="/terms" target="_blank">{t("Terms of Service")}</Link> and <Link href="/privacy" target="_blank">{t("Privacy Policy")}</Link>.</span></label>
-        <button style={{ width: '100%' }} disabled={busy}>{busy ? 'Creating…' : t("Create account")}</button>
+        <button style={{ width: '100%' }} disabled={busy}>{busy ? t("Creating…") : t("Create account")}</button>
       </form>
       <p className="muted">Already a member? <Link href="/login">{t("Log in")}</Link></p>
     </div></div>
