@@ -6,7 +6,7 @@ import Avatar from '@/components/Avatar';
 import { supabase, fullName, timeAgo } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
 const TXT = { comment: 'commented on your post', reaction: 'reacted to your post', follow: 'started following you', connection_request: 'sent you a connection request', connection_accepted: 'accepted your connection request', message: 'sent you a message', mention: 'mentioned you' };
-const HREF = { follow: '/network', connection_request: '/network', connection_accepted: '/network', message: '/messages' };
+const HREF = { follow: '/network', connection_request: '/network', connection_accepted: '/network', message: '/messages', application: '/opportunities' };
 function Inner({ me }) {
   const { t, lang } = useT();
   const L = (en, sw) => (lang === 'sw' ? sw : en);
@@ -14,7 +14,9 @@ function Inner({ me }) {
   const load = async () => { const { data } = await supabase.from('notifications').select('*, actor:profiles!notifications_actor_id_fkey(id,username,first_name,last_name,avatar_url)').eq('user_id', me.id).order('created_at', { ascending: false }).limit(50); setList(data || []); };
   useEffect(() => { load(); }, []);
   const readAll = async () => { await supabase.from('notifications').update({ is_read: true }).eq('user_id', me.id).eq('is_read', false); load(); };
-  const text = (n) => n.kind === 'badge'
+  const text = (n) => n.kind === 'application'
+    ? L('applied for your opportunity', 'ametuma maombi ya fursa yako')
+    : n.kind === 'badge'
     ? L('You received the Terraviva Beneficiary badge 🌱', 'Umepewa beji ya Mnufaika wa Terraviva 🌱')
     : t(TXT[n.kind] || n.kind);
   return (<div><div style={{ display: 'flex', justifyContent: 'space-between' }}><h2>{t("Notifications")}</h2><button className="sec" onClick={readAll}>{t("Mark all read")}</button></div>
