@@ -13,10 +13,12 @@ import { useT } from '@/lib/i18n';
 const KINDS = [['experience', 'Experience'], ['education', 'Education'], ['certification', 'Certifications'], ['skill', 'Skills']];
 
 function Inner({ me }) {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const L = (en, sw) => (lang === 'sw' ? sw : en);
   const { username } = useParams(); const [p, setP] = useState(null); const [posts, setPosts] = useState([]); const [rel, setRel] = useState({}); const [nf, setNf] = useState(false);
   const [items, setItems] = useState([]); const [recs, setRecs] = useState([]); const [recTxt, setRecTxt] = useState(''); const [views, setViews] = useState(0); const [adding, setAdding] = useState(false);
   const [it, setIt] = useState({ kind: 'experience', title: '', organization: '', description: '', start_year: '', end_year: '' });
+  const [editId, setEditId] = useState(null); const [editRec, setEditRec] = useState(null);
 
   const load = async () => {
     const { data } = await supabase.from('profiles').select('*').eq('username', username).maybeSingle();
@@ -50,12 +52,13 @@ function Inner({ me }) {
   const setK = k => e => setIt({ ...it, [k]: e.target.value });
   const addItem = async (e) => { e.preventDefault();
     const row = { user_id: me.id, kind: it.kind, title: it.title.trim(), organization: it.organization || null, description: it.description || null, start_year: it.start_year ? +it.start_year : null, end_year: it.end_year ? +it.end_year : null };
-    const { error } = await supabase.from('profile_items').insert(row); if (error) return alert(error.message);
-    setIt({ ...it, title: '', organization: '', description: '', start_year: '', end_year: '' }); setAdding(false); load(); };
+    const { error } = editId ? await supabase.from('profile_items').update(row).eq('id', editId) : await supabase.from('profile_items').insert(row); if (error) return alert(error.message);
+    setIt({ kind: it.kind, title: '', organization: '', description: '', start_year: '', end_year: '' }); setEditId(null); setAdding(false); load(); };
+  const startEdit = (x) => { setEditId(x.id); setIt({ kind: x.kind, title: x.title || '', organization: x.organization || '', description: x.description || '', start_year: x.start_year || '', end_year: x.end_year || '' }); setAdding(true); };
   const endorsed = (x) => (x.skill_endorsements || []).some(e => e.endorser_id === me.id);
   const endorse = async (x) => { endorsed(x) ? await supabase.from('skill_endorsements').delete().match({ item_id: x.id, endorser_id: me.id }) : await supabase.from('skill_endorsements').insert({ item_id: x.id, endorser_id: me.id }); load(); };
   const myRec = recs.find(r => r.author_id === me.id);
-  const sendRec = async (e) => { e.preventDefault(); const { error } = await supabase.from('recommendations').insert({ recipient_id: p.id, author_id: me.id, body: recTxt.trim() }); if (error) return alert(error.message); setRecTxt(''); load(); };
+  const sendRec = async (e) => { e.preventDefault(); const { error } = editRec ? await supabase.from('recommendations').update({ body: recTxt.trim() }).eq('id', editRec) : await supabase.from('recommendations').insert({ recipient_id: p.id, author_id: me.id, body: recTxt.trim() }); if (error) return alert(error.message); setRecTxt(''); setEditRec(null); load(); };
   const approveRec = async (r) => { await supabase.from('recommendations').update({ status: 'approved' }).eq('id', r.id); load(); };
   const delRec = async (r) => { await supabase.from('recommendations').delete().eq('id', r.id); load(); };
   const delItem = async (id) => { await supabase.from('profile_items').delete().eq('id', id); load(); };
@@ -78,27 +81,27 @@ function Inner({ me }) {
       </div></div>
 
     {(items.length > 0 || mine) && <div className="card">
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}><h3>{t("Background")}</h3>{mine && <button className="sec" onClick={() => setAdding(!adding)}>{adding ? t("Close") : t("+ Add")}</button>}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}><h3>{t("Background")}</h3>{mine && <button className="sec" onClick={() => { if (adding) setEditId(null); setAdding(!adding); }}>{adding ? t("Close") : t("+ Add")}</button>}</div>
       {adding && <form onSubmit={addItem} style={{ marginBottom: '.8rem' }}>
         <select value={it.kind} onChange={setK('kind')}>{KINDS.map(([v, l]) => <option key={v} value={v}>{l.replace(/s$/, '')}</option>)}</select>
         <input placeholder={it.kind === 'skill' ? t("Skill (e.g. Agroforestry)") : t("Title / Degree / Certificate")} value={it.title} onChange={setK('title')} required />
         {it.kind !== 'skill' && <><input placeholder={t("Organization / School")} value={it.organization} onChange={setK('organization')} />
           <div className="row"><input type="number" placeholder={t("Start year")} value={it.start_year} onChange={setK('start_year')} /><input type="number" placeholder={t("End year (blank = present)")} value={it.end_year} onChange={setK('end_year')} /></div>
           <textarea rows={2} placeholder={t("Description")} value={it.description} onChange={setK('description')} /></>}
-        <button>{t("Save")}</button></form>}
+        <button>{t("Save")}</button>{editId && <> <button type="button" className="sec" onClick={() => { setEditId(null); setAdding(false); setIt({ kind: 'experience', title: '', organization: '', description: '', start_year: '', end_year: '' }); }}>{t("Cancel")}</button></>}</form>}
       {KINDS.map(([k, label]) => { const list = items.filter(x => x.kind === k); if (!list.length) return null;
         return (<div className="sect" key={k}><h4>{t(label)}</h4>
-          {k === 'skill' ? <div>{list.map(x => <span className="skill" key={x.id}>{x.title}<small> {x.skill_endorsements?.length || 0}</small>{!mine && <button className="link" style={{ padding: '0 .3rem' }} title="Endorse" onClick={() => endorse(x)}>{endorsed(x) ? '✓' : '+'}</button>}{mine && <button className="link" style={{ padding: '0 .3rem' }} onClick={() => delItem(x.id)}>✕</button>}</span>)}</div>
+          {k === 'skill' ? <div>{list.map(x => <span className="skill" key={x.id}>{x.title}<small> {x.skill_endorsements?.length || 0}</small>{!mine && <button className="link" style={{ padding: '0 .3rem' }} title="Endorse" onClick={() => endorse(x)}>{endorsed(x) ? '✓' : '+'}</button>}{mine && <><button className="link" style={{ padding: '0 .3rem' }} onClick={() => startEdit(x)}>✏️</button><button className="link" style={{ padding: '0 .3rem' }} onClick={() => delItem(x.id)}>✕</button></>}</span>)}</div>
             : list.map(x => <div className="item" key={x.id}><div><b>{x.title}</b><div className="muted">{x.organization} {(x.start_year || x.end_year) && `· ${x.start_year || ''} – ${x.end_year || 'Present'}`}</div>{x.description && <div>{x.description}</div>}</div>
-              {mine && <button className="link" onClick={() => delItem(x.id)}>🗑</button>}</div>)}</div>); })}
+              {mine && <span><button className="link" onClick={() => startEdit(x)}>✏️</button><button className="link" onClick={() => delItem(x.id)}>🗑</button></span>}</div>)}</div>); })}
       {!items.length && <p className="muted">{t("Add your experience, education and skills.")}</p>}
     </div>}
 
     <div className="card"><h3>{t("Recommendations")}</h3>
       {!recs.length && <p className="muted">{t("No recommendations yet.")}</p>}
       {recs.map(r => <div className="item" key={r.id}><div><b>{fullName(r.author)}</b> {r.status === 'pending' && <span className="badge b-org">{t("pending approval")}</span>}<div>{r.body}</div></div>
-        <div>{mine && r.status === 'pending' && <button onClick={() => approveRec(r)}>{t("Show on profile")}</button>}{(mine || r.author_id === me.id) && <button className="link" onClick={() => delRec(r)}>🗑</button>}</div></div>)}
-      {!mine && !myRec && <form onSubmit={sendRec} style={{ marginTop: '.6rem' }}><textarea rows={3} minLength={10} maxLength={1500} placeholder={t("Write a recommendation (min 10 characters)")} value={recTxt} onChange={e => setRecTxt(e.target.value)} required /><button>{t("Send recommendation")}</button></form>}
+        <div>{mine && r.status === 'pending' && <button onClick={() => approveRec(r)}>{t("Show on profile")}</button>}{r.author_id === me.id && <button className="link" onClick={() => { setEditRec(r.id); setRecTxt(r.body); }}>✏️</button>}{(mine || r.author_id === me.id) && <button className="link" onClick={() => delRec(r)}>🗑</button>}</div></div>)}
+      {!mine && (!myRec || editRec) && <form onSubmit={sendRec} style={{ marginTop: '.6rem' }}><textarea rows={3} minLength={10} maxLength={1500} placeholder={t("Write a recommendation (min 10 characters)")} value={recTxt} onChange={e => setRecTxt(e.target.value)} required /><button>{editRec ? t("Save changes") : t("Send recommendation")}</button>{editRec && <> <button type="button" className="sec" onClick={() => { setEditRec(null); setRecTxt(''); }}>{t("Cancel")}</button><small className="muted"> {L('After editing, the person must approve it again.', 'Baada ya kuhariri, mhusika anapaswa kuidhinisha tena.')}</small></>}</form>}
     </div>
 
     <h3>{t("Posts")}</h3>{!posts.length && <p className="muted">{t("No posts yet.")}</p>}{posts.map(x => <PostCard key={x.id} post={x} me={me} onChange={load} />)}
