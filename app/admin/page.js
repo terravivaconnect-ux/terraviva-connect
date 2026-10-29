@@ -16,6 +16,7 @@ function Inner({ me }) {
   const [users, setUsers] = useState([]);
   const [coms, setComs] = useState([]);
   const [nc, setNc] = useState({ name: '', description: '', privacy: 'public' });
+  const [ec, setEc] = useState(null);
   const isAdmin = me.role === 'admin';
 
   const load = async () => {
@@ -61,6 +62,13 @@ function Inner({ me }) {
     if (error) alert(error.message);
     setNc({ name: '', description: '', privacy: 'public' });
     load();
+  };
+
+  const saveCom = async (e) => {
+    e.preventDefault();
+    const { error } = await supabase.from('communities').update({ name: ec.name.trim(), description: ec.description, privacy: ec.privacy }).eq('id', ec.id);
+    if (error) return alert(error.message);
+    setEc(null); load();
   };
 
   const toggleCom = async (c) => {
@@ -150,12 +158,26 @@ function Inner({ me }) {
               <button>{t("Create")}</button>
             </form>
           )}
+          {ec && (
+            <form className="card" onSubmit={saveCom}>
+              <h3>{L('Edit community', 'Hariri jumuiya')}</h3>
+              <input placeholder={t("Name")} value={ec.name} onChange={e => setEc({ ...ec, name: e.target.value })} required />
+              <textarea rows={4} placeholder={t("Description")} value={ec.description || ''} onChange={e => setEc({ ...ec, description: e.target.value })} />
+              <select value={ec.privacy} onChange={e => setEc({ ...ec, privacy: e.target.value })}>
+                <option value="public">{t("Public")}</option>
+                <option value="private">{t("Private")}</option>
+                <option value="restricted">{t("Restricted")}</option>
+              </select>
+              <button>{t("Save changes")}</button> <button type="button" className="sec" onClick={() => setEc(null)}>{t("Cancel")}</button>
+            </form>
+          )}
           {coms.map(c => (
             <div className="card" key={c.id}>
               <b>{c.name}</b>{' '}
               <small className="muted">{c.privacy} · {c.is_active ? 'active' : 'inactive'}</small>
               {isAdmin && (
                 <div>
+                  <button className="sec" onClick={() => setEc({ ...c })}>✏️ {L('Edit', 'Hariri')}</button>{' '}
                   <button className="sec" onClick={() => toggleCom(c)}>{c.is_active ? t("Deactivate") : t("Activate")}</button>
                 </div>
               )}
