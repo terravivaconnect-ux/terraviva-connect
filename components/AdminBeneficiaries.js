@@ -40,6 +40,11 @@ export default function AdminBeneficiaries() {
     } catch (x) { setErr(x.message); } finally { setBusy(false); }
   };
 
+  const removeRow = async (r) => {
+    if (!confirm(L(`Remove ${r.reg_email} from the list? (A badge already given stays until you remove it under Users.)`, `Unataka kumwondoa ${r.reg_email} kwenye orodha? (Beji aliyopewa tayari inabaki hadi uiondoe kwenye Users.)`))) return;
+    const { error } = await supabase.from('beneficiary_registry').delete().eq('id', r.reg_id);
+    if (error) setErr(error.message); else load();
+  };
   return (<div>
     <div className="card"><h3>{t("Beneficiary registry")} ({rows.length})</h3>
       <p className="muted">{L('Type one beneficiary per line: email and name. Members with that confirmed email receive the 🌱 Beneficiary badge immediately and are notified.', 'Andika mnufaika mmoja kwa kila mstari: barua pepe na jina. Wanachama wenye barua pepe hiyo iliyothibitishwa hupewa beji ya 🌱 Mnufaika papo hapo na kujulishwa.')}</p>
@@ -49,7 +54,7 @@ export default function AdminBeneficiaries() {
     {rows.map(r => (<div className="card item" key={r.reg_id}>
       <div><b>{r.reg_name || '—'}</b><br /><small className="muted">{r.reg_email}{r.reg_username ? ' · @' + r.reg_username : ''}</small></div>
       <div>{r.reg_verified ? <span className="tbadge ben"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#fff" opacity=".25" /><path d="M7 12.5l3.2 3.2L17 8.8" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>{L('Badge given', 'Amepewa beji')}</span>
-        : <span className="badge b-org">{r.reg_member ? L('Member, not verified', 'Mwanachama, hajathibitishwa') : L('Waiting to sign up', 'Anasubiri kujisajili')}</span>}</div>
+        : <span className="badge b-org">{r.reg_member ? L('Member, not verified', 'Mwanachama, hajathibitishwa') : L('Waiting to sign up', 'Anasubiri kujisajili')}</span>}<button className="link" onClick={() => removeRow(r)}>🗑</button></div>
     </div>))}
   </div>);
 }
