@@ -21,9 +21,10 @@ const mediaOf = (m) => {
 const hideText = (m) => m.attachment_url && (m.body === '📎' || m.body === '📎 Attachment');
 
 function Inner({ me }) {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const L = (en, sw) => (lang === 'sw' ? sw : en);
   const sp = useSearchParams(); const [convs, setConvs] = useState([]); const [cur, setCur] = useState(null);
-  const [msgs, setMsgs] = useState([]); const [txt, setTxt] = useState(''); const end = useRef(null); const [err, setErr] = useState(''); const [up, setUp] = useState(false);
+  const [msgs, setMsgs] = useState([]); const [txt, setTxt] = useState(''); const end = useRef(null); const [err, setErr] = useState(''); const [up, setUp] = useState(false); const [editM, setEditM] = useState(null); const [etx, setEtx] = useState('');
   const loadConvs = async () => {
     const { data } = await supabase.from('conversation_participants').select('last_read_at, conversation:conversations(id,last_message_at, parts:conversation_participants(user:profiles(id,username,first_name,last_name,avatar_url)))').eq('user_id', me.id).eq('archived', false);
     const list = (data || []).filter(r => r.conversation).map(r => ({ id: r.conversation.id, at: r.conversation.last_message_at, unread: new Date(r.conversation.last_message_at) > new Date(r.last_read_at), other: r.conversation.parts.map(x => x.user).find(u => u && u.id !== me.id) })).filter(c => c.other).sort((a, b) => new Date(b.at) - new Date(a.at));
@@ -39,7 +40,7 @@ function Inner({ me }) {
     const load = async () => { const { data } = await supabase.from('messages').select('*').eq('conversation_id', cur).order('created_at').limit(200); setMsgs(data || []);
       await supabase.from('conversation_participants').update({ last_read_at: new Date().toISOString() }).match({ conversation_id: cur, user_id: me.id }); };
     load();
-    const ch = supabase.channel('conv-' + cur).on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${cur}` }, load).subscribe();
+    const ch = supabase.channel('conv-' + cur).on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `conversation_id=eq.${cur}` }, load).subscribe();
     return () => supabase.removeChannel(ch);
   }, [cur]);
   useEffect(() => { end.current?.scrollIntoView(); }, [msgs]);
@@ -49,6 +50,11 @@ function Inner({ me }) {
     if (!text && !extra) return;
     const { error } = await supabase.from('messages').insert({ conversation_id: cur, sender_id: me.id, body: text || '📎', ...(extra || {}) });
     if (error) setErr(error.message); else { setTxt(''); setErr(''); loadConvs(); }
+  };
+  const saveEditM = async () => {
+    if (!etx.trim()) return;
+    const { error } = await supabase.from('messages').update({ body: etx.trim() }).eq('id', editM);
+    if (error) setErr(error.message); else { setEditM(null); setEtx(''); setMsgs(msgs.map(x => x.id === editM ? { ...x, body: etx.trim(), edited_at: new Date().toISOString() } : x)); }
   };
   const attach = async (e) => {
     const f = e.target.files[0]; e.target.value = ''; if (!f) return;
@@ -68,7 +74,11 @@ function Inner({ me }) {
       {cur ? <><h3>{fullName(other)}</h3>{err && <div className="err">{err}</div>}
         <div className="msgs">{msgs.map(m => { const media = mediaOf(m); return (
           <div key={m.id} className={'m' + (m.sender_id === me.id ? ' me' : '') + (media.length ? ' wide' : '')}>
-            {!hideText(m) && <div><RichText text={m.body} /></div>}
+            {editM === m.id
+              ? <div><AutoTextarea autoFocus value={etx} onChange={setEtx} onSubmit={saveEditM} maxLength={4000} />
+                  <button type="button" onClick={saveEditM}>{t("Save")}</button> <button type="button" className="sec" onClick={() => setEditM(null)}>{t("Cancel")}</button></div>
+              : !hideText(m) && <div><RichText text={m.body} /></div>}
+            {editM !== m.id && m.sender_id === me.id && !hideText(m) && <div className="medit"><button type="button" className="link" onClick={() => { setEditM(m.id); setEtx(m.body); }}>✏️ {L('Edit', 'Hariri')}</button>{m.edited_at && <small> · {L('edited', 'imehaririwa')}</small>}</div>}
             <MediaGallery media={media} compact />
           </div>); })}<div ref={end} /></div>
         <form onSubmit={(e) => { e.preventDefault(); send(); }} style={{ display: 'flex', gap: '.5rem', alignItems: 'flex-end' }}>
