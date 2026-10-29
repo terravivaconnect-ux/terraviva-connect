@@ -86,3 +86,16 @@ p,.bub,.m,.item div,.hero div,.muted{white-space:pre-wrap;overflow-wrap:anywhere
 .tbadge.org{background:linear-gradient(135deg,#a16a00,#e0a526);box-shadow:0 1px 5px rgba(161,106,0,.4)}
 .tbadge::after{content:"";position:absolute;top:0;left:-70%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);transform:skewX(-20deg);animation:tshine 4s infinite}
 @keyframes tshine{0%{left:-70%}55%,100%{left:140%}}
+
+/* public landing page */
+.has-session .landing-wrap{display:none}
+.landing{max-width:1000px;margin:0 auto;padding:1rem 1rem 2rem}
+.lhero{text-align:center;padding:2rem 1rem 1.5rem;background:linear-gradient(160deg,#dff0ea,#eef6e4);border-radius:24px;margin-bottom:1.5rem}
+.lhero img{max-width:70%;height:auto;mix-blend-mode:multiply}.lhero h1{font-size:2rem;margin:.3rem 0}
+.ltag{font-weight:700;color:var(--teal);margin:.2rem 0}.ltag.sw{color:var(--green)}.lintro{max-width:680px;margin:.7rem auto;color:var(--text)}
+.lcta{margin-top:1rem;display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap}
+.landing section{margin-bottom:1.5rem}.landing h2{margin-bottom:.8rem}
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.9rem}.lico{font-size:1.8rem}
+.lmission{background:linear-gradient(120deg,var(--teal),var(--green));color:#fff}.lmission .muted{color:#e6f2ea}
+.lfoot{text-align:center;border-top:1px solid var(--bd);padding-top:1rem}
+.medit{font-size:.75rem;opacity:.85;text-align:right}.medit .link{color:inherit;padding:0 .3rem;font-size:.75rem}.m.me .medit .link:hover{background:rgba(255,255,255,.2);color:#fff}
