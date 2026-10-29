@@ -13,7 +13,7 @@ export const REACTIONS = [['like', '👍', 'Like'], ['love', '❤️', 'Love'], 
 const EMOJI = Object.fromEntries(REACTIONS.map(r => [r[0], r[1]]));
 
 export default function PostCard({ post, me, onChange, savedInit = false }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [open, setOpen] = useState(false); const [cm, setCm] = useState([]); const [txt, setTxt] = useState('');
   const [rx, setRx] = useState(post.reactions || []); const [picker, setPicker] = useState(false);
   const [saved, setSaved] = useState(savedInit); const [ccount, setCcount] = useState(post.comments?.[0]?.count || 0);
@@ -73,7 +73,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
       <div className="post-h">
         <Avatar p={a} />
         <div className="meta"><Link href={`/profile/${a?.username}`}><b>{fullName(a)}<Badges p={a} /></b></Link>
-          <small>{a?.headline ? a.headline + ' · ' : ''}{timeAgo(post.created_at)}{post.community ? ` · in ${post.community.name}` : ''}</small></div>
+          <small>{a?.headline ? a.headline + ' · ' : ''}{timeAgo(post.created_at)}{post.updated_at && new Date(post.updated_at) - new Date(post.created_at) > 10000 ? ` · ${lang === 'sw' ? 'imehaririwa' : 'edited'}` : ''}{post.community ? ` · in ${post.community.name}` : ''}</small></div>
         {post.type !== 'text' && <span className="badge b-pro">{post.type.replace('_', ' ')}</span>}
       </div>
       {editing ? <div><textarea rows={4} value={body} onChange={e => setBody(e.target.value)} maxLength={5000} />
