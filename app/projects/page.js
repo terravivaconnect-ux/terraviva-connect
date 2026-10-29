@@ -3,12 +3,16 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Shell from '@/components/Shell';
 import Badges from '@/components/Badges';
+import AutoTextarea from '@/components/AutoTextarea';
 import { supabase, uploadFile, fullName, timeAgo } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
 
 function Project({ p, me, reload }) {
-  const { t } = useT();
+  const { t, lang } = useT();
+  const L = (en, sw) => (lang === 'sw' ? sw : en);
   const [open, setOpen] = useState(false); const [ups, setUps] = useState([]); const [txt, setTxt] = useState(''); const [prog, setProg] = useState(p.progress);
+  const [editing, setEditing] = useState(false); const [ef, setEf] = useState({ title: p.title, summary: p.summary || '', location: p.location || '', status: p.status });
+  const [editUp, setEditUp] = useState(null); const [eut, setEut] = useState('');
   const own = p.owner_id === me.id;
   const loadUps = async () => { const { data } = await supabase.from('project_updates').select('*').eq('project_id', p.id).order('created_at', { ascending: false }); setUps(data || []); };
   const toggle = () => { if (!open) loadUps(); setOpen(!open); };
@@ -17,23 +21,38 @@ function Project({ p, me, reload }) {
     await supabase.from('projects').update({ progress: +prog }).eq('id', p.id); setTxt(''); loadUps(); reload(); };
   const status = async (s) => { await supabase.from('projects').update({ status: s }).eq('id', p.id); reload(); };
   const del = async () => { if (confirm(t("Delete this project?"))) { await supabase.from('projects').delete().eq('id', p.id); reload(); } };
+  const saveProject = async (e) => { e.preventDefault(); const { error } = await supabase.from('projects').update({ title: ef.title.trim(), summary: ef.summary, location: ef.location, status: ef.status, progress: +prog }).eq('id', p.id); if (error) return alert(error.message); setEditing(false); reload(); };
+  const saveUp = async () => { if (!eut.trim()) return; await supabase.from('project_updates').update({ body: eut.trim() }).eq('id', editUp); setEditUp(null); loadUps(); };
+  const delUp = async (id) => { if (confirm(L('Delete this update?', 'Futa taarifa hii?'))) { await supabase.from('project_updates').delete().eq('id', id); loadUps(); } };
   return (<div className="card" style={{ padding: 0, overflow: 'hidden' }}>
     {p.cover_url && <img src={p.cover_url} alt="" style={{ width: '100%', maxHeight: 260, objectFit: 'cover', display: 'block' }} />}
     <div style={{ padding: '1rem' }}>
+      {editing ? <form onSubmit={saveProject}>
+        <input placeholder={t("Project title")} value={ef.title} onChange={e => setEf({ ...ef, title: e.target.value })} required />
+        <textarea rows={5} placeholder={t("Summary: goals, activities, who benefits")} value={ef.summary} onChange={e => setEf({ ...ef, summary: e.target.value })} />
+        <div className="row"><input placeholder={t("Location")} value={ef.location} onChange={e => setEf({ ...ef, location: e.target.value })} />
+          <select value={ef.status} onChange={e => setEf({ ...ef, status: e.target.value })}><option value="planning">{t("Planning")}</option><option value="active">Active</option><option value="completed">{t("Completed")}</option></select></div>
+        <label>{L('Progress', 'Maendeleo')}: {prog}%<input type="range" min="0" max="100" value={prog} onChange={e => setProg(e.target.value)} /></label>
+        <button>{t("Save changes")}</button> <button type="button" className="sec" onClick={() => setEditing(false)}>{t("Cancel")}</button></form>
+      : <>
       <span className="badge b-ben" style={{ marginLeft: 0 }}>{p.status}</span> {p.location && <small className="muted">📍 {p.location}</small>}
       <h3 style={{ marginTop: '.4rem' }}>{p.title}</h3>
       <div>by <Link href={`/profile/${p.owner?.username}`}><b>{fullName(p.owner)}</b></Link> <Badges p={p.owner} /></div>
       <p className="post-body">{p.summary}</p>
-      <div className="progress"><div style={{ width: p.progress + '%' }} /></div><small className="muted">{p.progress}% complete</small>
+      <div className="progress"><div style={{ width: p.progress + '%' }} /></div><small className="muted">{p.progress}% complete</small></>}
       <div style={{ marginTop: '.5rem', display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
         <button className="sec" onClick={toggle}>{open ? t("Hide updates") : t("Progress updates")}</button>
+        {own && !editing && <button className="link" onClick={() => { setEf({ title: p.title, summary: p.summary || '', location: p.location || '', status: p.status }); setProg(p.progress); setEditing(true); }}>✏️ {L('Edit', 'Hariri')}</button>}
         {own && p.status !== 'completed' && <button className="link" onClick={() => status('completed')}>{t("✓ Mark completed")}</button>}
         {(own || me.role !== 'member') && <button className="link" onClick={del}>{t("🗑 Delete")}</button>}</div>
       {open && <div style={{ marginTop: '.7rem' }}>
-        {own && <form onSubmit={post}><textarea rows={2} placeholder={t("Share a progress update…")} value={txt} onChange={e => setTxt(e.target.value)} />
+        {own && <form onSubmit={post}><textarea rows={3} placeholder={t("Share a progress update…")} value={txt} onChange={e => setTxt(e.target.value)} />
           <label>Progress: {prog}%<input type="range" min="0" max="100" value={prog} onChange={e => setProg(e.target.value)} /></label><button>{t("Post update")}</button></form>}
         {!ups.length && <p className="muted">{t("No updates yet.")}</p>}
-        {ups.map(u => <div className="item" key={u.id}><div>{u.body}<br /><small className="muted">{timeAgo(u.created_at)}</small></div></div>)}</div>}
+        {ups.map(u => <div className="item" key={u.id}>{editUp === u.id
+          ? <div style={{ flex: 1 }}><AutoTextarea autoFocus value={eut} onChange={setEut} onSubmit={saveUp} /><button type="button" onClick={saveUp}>{t("Save")}</button> <button type="button" className="sec" onClick={() => setEditUp(null)}>{t("Cancel")}</button></div>
+          : <><div>{u.body}<br /><small className="muted">{timeAgo(u.created_at)}</small></div>
+            {u.author_id === me.id && <span><button className="link" onClick={() => { setEditUp(u.id); setEut(u.body); }}>✏️</button><button className="link" onClick={() => delUp(u.id)}>🗑</button></span>}</>}</div>)}</div>}
     </div></div>);
 }
 
