@@ -1,4 +1,4 @@
-/* Terraviva Connect – badges na walioangalia profile.
+/* Terraviva Connect – badges, walioangalia profile na kushare profile.
    Madarasa yote yanaanza na "tvb-" ili yasigongane na CSS yako ya sasa.
    Rangi zinaweza kubadilishwa kwa kuweka --tvb-* kwenye :root. */
 
@@ -441,6 +441,7 @@ button.tvb-viewer__link {
   text-align: center;
   padding: 28px 16px;
 }
+
 /* Kushare profile */
 .tvb-share-card {
   display: flex;
