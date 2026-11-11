@@ -1,5 +1,6 @@
 'use client';
 import { useT } from '@/lib/i18n';
+import BadgePills from '@/components/BadgePills';
 
 const Leaf = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -30,5 +31,6 @@ export default function Badges({ p }) {
     {p.is_beneficiary_verified && <span className="tbadge ben" title={L('Verified Terraviva Beneficiary', 'Mnufaika Aliyethibitishwa wa Terraviva')}><Leaf />{L('Beneficiary', 'Mnufaika')}</span>}
     {p.is_professional_verified && <span className="tbadge pro" title={L('Verified Professional', 'Mtaalamu Aliyethibitishwa')}><Check />{L('Professional', 'Mtaalamu')}</span>}
     {p.is_org_verified && <span className="tbadge org" title={L('Verified Organization', 'Shirika Lililothibitishwa')}><Building />{L('Organization', 'Shirika')}</span>}
+    <BadgePills ids={p.badge_ids} />
   </>);
 }
