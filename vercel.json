@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/profile/:username", "destination": "/api/profile-og?username=:username" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
