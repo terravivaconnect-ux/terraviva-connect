@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react';
 import Shell from '@/components/Shell';
 import AdminStats from '@/components/AdminStats';
 import AdminBeneficiaries from '@/components/AdminBeneficiaries';
+import AdminBadges from '@/components/AdminBadges';
 import { supabase, fullName, timeAgo } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
 
-const TABS = { stats: 'Statistics', reports: 'Reports', users: 'Users', beneficiaries: 'Beneficiaries', communities: 'Communities' };
+const TABS = { stats: 'Statistics', reports: 'Reports', users: 'Users', beneficiaries: 'Beneficiaries', badges: 'Badges', communities: 'Communities' };
 
 function Inner({ me }) {
   const { t, lang } = useT();
@@ -80,7 +81,7 @@ function Inner({ me }) {
     <div>
       <h2>{t("Administration")}</h2>
       <div className="tabs">
-        {Object.keys(TABS).filter(k => isAdmin || k !== 'beneficiaries').map(k => (
+        {Object.keys(TABS).filter(k => isAdmin || (k !== 'beneficiaries' && k !== 'badges')).map(k => (
           <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
             {t(TABS[k])}
           </button>
@@ -89,6 +90,7 @@ function Inner({ me }) {
 
       {tab === 'stats' && <AdminStats />}
       {tab === 'beneficiaries' && isAdmin && <AdminBeneficiaries />}
+      {tab === 'badges' && isAdmin && <AdminBadges />}
 
       {tab === 'reports' && (
         <div>
