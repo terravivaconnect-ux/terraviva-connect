@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Shell from '@/components/Shell';
 import Avatar from '@/components/Avatar';
 import Badges from '@/components/Badges';
+import ShareProfile from '@/components/ShareProfile';
 import PostCard from '@/components/PostCard';
 import { POST_SELECT } from '@/components/Feed';
 import { supabase, fullName } from '@/lib/supabase';
@@ -70,9 +71,9 @@ function Inner({ me }) {
         <div style={{ marginTop: -50 }}><Avatar p={p} size={90} /></div>
         <h2 style={{ marginTop: '.5rem' }}>{fullName(p)} <Badges p={p} /></h2>
         <div>{p.headline}</div><small className="muted">@{p.username} · {[p.district, p.region, p.country].filter(Boolean).join(', ')}</small>
-        <div className="muted" style={{ margin: '.4rem 0' }}>{rel.followers} {t("followers")} · {rel.connections} {t("connections")}{mine && ` · 👁 ${views} profile views (30 days)`}</div>
+        <div className="muted" style={{ margin: '.4rem 0' }}>{rel.followers} {t("followers")} · {rel.connections} {t("connections")}{mine && <> · <Link href="/profile/viewers">👁 {views} {L('profile views (30 days)', 'walioangalia wasifu (siku 30)')}</Link></>}</div>
         {p.bio && <p>{p.bio}</p>}{p.interest && <span className="badge b-pro" style={{ marginLeft: 0 }}>{p.interest}</span>}
-        {mine ? <div style={{ marginTop: '.8rem' }}><Link className="btn" href="/settings">{t("Edit profile")}</Link></div> :
+        {mine ? <div style={{ marginTop: '.8rem', display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}><Link className="btn" href="/settings">{t("Edit profile")}</Link><Link className="btn sec" href="/badges">🏅 {L('Badges', 'Beji')}</Link><ShareProfile profile={p} /></div> :
           <div style={{ marginTop: '.8rem', display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
             {!rel.conn && <button onClick={connect}>{t("Connect")}</button>}{rel.conn?.status === 'pending' && <button className="sec" disabled>{t("Request pending")}</button>}
             <button className="sec" onClick={follow}>{rel.following ? t("Following") : t("Follow")}</button>
