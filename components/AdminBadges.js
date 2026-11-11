@@ -100,7 +100,7 @@ function ReviewCard({ row, type, L, lang, onDone, onError }) {
       </div>
       <div>
         <span className="xbadge" style={{ marginLeft: 0 }}>✔ {type?.name || row.badge_id}</span>{' '}
-        <span className={'stat ' + (STATUS_TONE[row.status] || '')}>{st ? pick(st, lang) : row.status}</span>
+        <span className={'bstat ' + (STATUS_TONE[row.status] || '')}>{st ? pick(st, lang) : row.status}</span>
       </div>
       {row.detail && <p>{L('Role/organisation', 'Nafasi/taasisi')}: {row.detail}</p>}
 
