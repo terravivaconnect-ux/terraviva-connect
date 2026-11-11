@@ -18,7 +18,9 @@ export default function ShareProfile({
   const [copied, setCopied] = useState(false);
   const inputRef = useRef(null);
 
-  const isPrivate = profile?.visibility === 'private';
+  const visibility = profile?.visibility || 'public';
+  const blocked = visibility === 'private' || visibility === 'connections';
+  const membersOnly = visibility === 'members';
   const name = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || profile?.username || '';
 
   const url = useMemo(() => {
@@ -51,7 +53,6 @@ export default function ShareProfile({
       await navigator.clipboard.writeText(url);
       setCopied(true);
     } catch {
-      // Njia mbadala kwa vivinjari vya zamani
       inputRef.current?.select();
       try {
         document.execCommand('copy');
@@ -91,9 +92,12 @@ export default function ShareProfile({
           <div className="tvb-dialog" onClick={(e) => e.stopPropagation()}>
             <h2 id="tvb-share-title">Shiriki profile yako</h2>
 
-            {isPrivate ? (
+            {blocked ? (
               <p className="tvb-muted">
-                Profile yako ni ya faragha, kwa hiyo haiwezi kushirikiwa. Ibadilishe kuwa ya umma kwenye mipangilio ya faragha ukitaka kuishare.
+                {visibility === 'connections'
+                  ? 'Profile yako inaonekana kwa connections zako pekee, kwa hiyo haiwezi kushirikiwa kwa link. '
+                  : 'Profile yako ni ya faragha, kwa hiyo haiwezi kushirikiwa. '}
+                Ibadilishe kuwa ya umma kwenye mipangilio ya faragha ukitaka kuishare.
               </p>
             ) : (
               <>
@@ -101,6 +105,12 @@ export default function ShareProfile({
                   <strong>{name}</strong>
                   {profile.headline && <span className="tvb-muted">{profile.headline}</span>}
                 </div>
+
+                {membersOnly && (
+                  <p className="tvb-note">
+                    Profile yako inaonekana kwa wanachama walioingia pekee. Watu wasio na akaunti hawataona maelezo wala picha ya link hii.
+                  </p>
+                )}
 
                 <label className="tvb-field">
                   <span>Link ya profile yako</span>
@@ -136,7 +146,9 @@ export default function ShareProfile({
                   ))}
                 </ul>
 
-                <p className="tvb-muted">Mtu yeyote mwenye link hii ataona taarifa za umma za profile yako.</p>
+                {!membersOnly && (
+                  <p className="tvb-muted">Mtu yeyote mwenye link hii ataona taarifa za umma za profile yako.</p>
+                )}
               </>
             )}
 
