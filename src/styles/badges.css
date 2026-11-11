@@ -1,0 +1,443 @@
+/* Terraviva Connect – badges na walioangalia profile.
+   Madarasa yote yanaanza na "tvb-" ili yasigongane na CSS yako ya sasa.
+   Rangi zinaweza kubadilishwa kwa kuweka --tvb-* kwenye :root. */
+
+.tvb-page,
+.tvb-overlay {
+  --tvb-bg: var(--bg, #ffffff);
+  --tvb-surface: var(--surface, #f6f8f7);
+  --tvb-text: var(--text, #14231c);
+  --tvb-muted: var(--muted, #5c6d64);
+  --tvb-line: var(--border, #dbe3df);
+  --tvb-accent: var(--primary, #0f7a5c);
+  --tvb-accent-ink: #ffffff;
+  --tvb-danger: #b3261e;
+  --tvb-radius: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tvb-page,
+  .tvb-overlay {
+    --tvb-bg: var(--bg, #0f1713);
+    --tvb-surface: var(--surface, #17221c);
+    --tvb-text: var(--text, #e8f0ec);
+    --tvb-muted: var(--muted, #9fb0a7);
+    --tvb-line: var(--border, #2a3a32);
+    --tvb-accent: var(--primary, #3fbf98);
+    --tvb-accent-ink: #06150f;
+    --tvb-danger: #f2897f;
+  }
+}
+
+.tvb-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 16px;
+  color: var(--tvb-text);
+  box-sizing: border-box;
+}
+.tvb-page *,
+.tvb-overlay * {
+  box-sizing: border-box;
+}
+.tvb-head h1 {
+  margin: 0 0 4px;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+.tvb-section {
+  margin-top: 28px;
+}
+.tvb-section h2 {
+  margin: 0 0 10px;
+  font-size: 1.15rem;
+}
+.tvb-cat h3 {
+  margin: 20px 0 8px;
+  font-size: 1rem;
+}
+.tvb-muted {
+  color: var(--tvb-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.tvb-foot {
+  margin-top: 20px;
+}
+.tvb-pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Alama ya badge */
+.tvb-pill {
+  --tone: #0f7a5c;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 3px 10px 3px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  color: var(--tone);
+  font-weight: 600;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+.tvb-pill--sm {
+  font-size: 0.75rem;
+  padding: 1px 8px 1px 4px;
+}
+.tvb-pill__icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.tvb-pill__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tvb-pill[data-tone='gold'] { --tone: #a86a00; }
+.tvb-pill[data-tone='blue'] { --tone: #1f5fbf; }
+.tvb-pill[data-tone='purple'] { --tone: #6b46c1; }
+.tvb-pill[data-tone='red'] { --tone: #b3261e; }
+.tvb-pill[data-tone='green'] { --tone: #2e7d32; }
+.tvb-pill[data-tone='slate'] { --tone: #4a5a66; }
+@media (prefers-color-scheme: dark) {
+  .tvb-pill { --tone: #4fd1a8; }
+  .tvb-pill[data-tone='gold'] { --tone: #f0b84a; }
+  .tvb-pill[data-tone='blue'] { --tone: #7fb0ff; }
+  .tvb-pill[data-tone='purple'] { --tone: #b79cff; }
+  .tvb-pill[data-tone='red'] { --tone: #f2897f; }
+  .tvb-pill[data-tone='green'] { --tone: #7ed68a; }
+  .tvb-pill[data-tone='slate'] { --tone: #a9bac6; }
+}
+
+/* Orodha na kadi */
+.tvb-list,
+.tvb-grid,
+.tvb-rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tvb-list {
+  display: grid;
+  gap: 10px;
+}
+.tvb-row,
+.tvb-card,
+.tvb-panel,
+.tvb-empty {
+  border: 1px solid var(--tvb-line);
+  border-radius: var(--tvb-radius);
+  background: var(--tvb-surface);
+  padding: 14px;
+}
+.tvb-row p,
+.tvb-card p {
+  margin: 8px 0 0;
+}
+.tvb-row__main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.tvb-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+@media (min-width: 600px) {
+  .tvb-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.tvb-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.tvb-card p {
+  flex: 1;
+  margin: 0;
+  font-size: 0.92rem;
+}
+.tvb-rules {
+  display: grid;
+  gap: 8px;
+}
+.tvb-rules li {
+  padding-left: 14px;
+  border-left: 3px solid var(--tvb-accent);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.tvb-note {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tvb-accent) 10%, transparent);
+  font-size: 0.9rem;
+}
+.tvb-evidence {
+  margin-top: 8px;
+  font-size: 0.92rem;
+}
+.tvb-evidence summary {
+  cursor: pointer;
+  font-weight: 600;
+  min-height: 32px;
+}
+
+/* Status */
+.tvb-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--tvb-line);
+  color: var(--tvb-text);
+}
+.tvb-status--verified { background: color-mix(in srgb, #2e7d32 20%, transparent); }
+.tvb-status--pending,
+.tvb-status--under_review,
+.tvb-status--more_info { background: color-mix(in srgb, #a86a00 20%, transparent); }
+.tvb-status--rejected,
+.tvb-status--revoked,
+.tvb-status--suspended { background: color-mix(in srgb, #b3261e 20%, transparent); }
+
+/* Fomu na vitufe */
+.tvb-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--tvb-line);
+  border-radius: 8px;
+  background: var(--tvb-bg);
+  color: var(--tvb-text);
+  font: inherit;
+}
+.tvb-input:focus-visible,
+.tvb-btn:focus-visible,
+.tvb-tab:focus-visible,
+.tvb-viewer__link:focus-visible {
+  outline: 2px solid var(--tvb-accent);
+  outline-offset: 2px;
+}
+.tvb-field {
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+.tvb-check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 14px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+.tvb-check input {
+  margin-top: 3px;
+}
+.tvb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.tvb-btn {
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 1px solid var(--tvb-accent);
+  border-radius: 8px;
+  background: var(--tvb-accent);
+  color: var(--tvb-accent-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tvb-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.tvb-btn--ghost {
+  background: transparent;
+  color: var(--tvb-text);
+  border-color: var(--tvb-line);
+}
+.tvb-btn--danger {
+  background: transparent;
+  color: var(--tvb-danger);
+  border-color: var(--tvb-danger);
+}
+
+/* Tabs */
+.tvb-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 16px 0;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.tvb-tab {
+  flex: none;
+  min-height: 36px;
+  padding: 6px 14px;
+  border: 1px solid var(--tvb-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--tvb-text);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.tvb-tab.is-active {
+  background: var(--tvb-accent);
+  border-color: var(--tvb-accent);
+  color: var(--tvb-accent-ink);
+}
+
+/* Alerts */
+.tvb-alert {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--tvb-danger);
+  border-radius: 8px;
+  color: var(--tvb-danger);
+  font-size: 0.9rem;
+}
+.tvb-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  max-width: calc(100% - 32px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--tvb-text);
+  color: var(--tvb-bg);
+  font-size: 0.9rem;
+  z-index: 60;
+}
+
+/* Dialog */
+.tvb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+@media (min-width: 600px) {
+  .tvb-overlay {
+    align-items: center;
+  }
+}
+.tvb-dialog {
+  width: 100%;
+  max-width: 520px;
+  max-height: 92vh;
+  overflow-y: auto;
+  padding: 18px;
+  border-radius: 16px 16px 0 0;
+  background: var(--tvb-bg);
+  color: var(--tvb-text);
+}
+@media (min-width: 600px) {
+  .tvb-dialog {
+    border-radius: 16px;
+  }
+}
+.tvb-dialog h2 {
+  margin: 0 0 10px;
+  font-size: 1.2rem;
+}
+.tvb-def dt {
+  margin-top: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.tvb-def dd {
+  margin: 2px 0 0;
+  color: var(--tvb-muted);
+  font-size: 0.92rem;
+}
+
+/* Walioangalia profile */
+.tvb-viewer {
+  border: 1px solid var(--tvb-line);
+  border-radius: var(--tvb-radius);
+  background: var(--tvb-surface);
+}
+.tvb-viewer__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+a.tvb-viewer__link,
+button.tvb-viewer__link {
+  cursor: pointer;
+}
+.tvb-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--tvb-accent) 18%, transparent);
+  color: var(--tvb-accent);
+  font-weight: 700;
+}
+.tvb-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.tvb-viewer__text {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+.tvb-viewer__text .tvb-muted {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tvb-viewer__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+.tvb-viewer__meta {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 0.8rem;
+  text-align: right;
+}
+.tvb-empty {
+  text-align: center;
+  padding: 28px 16px;
+}
