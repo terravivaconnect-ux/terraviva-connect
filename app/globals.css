@@ -99,3 +99,21 @@ p,.bub,.m,.item div,.hero div,.muted{white-space:pre-wrap;overflow-wrap:anywhere
 .lmission{background:linear-gradient(120deg,var(--teal),var(--green));color:#fff}.lmission .muted{color:#e6f2ea}
 .lfoot{text-align:center;border-top:1px solid var(--bd);padding-top:1rem}
 .medit{font-size:.75rem;opacity:.85;text-align:right}.medit .link{color:inherit;padding:0 .3rem;font-size:.75rem}.m.me .medit .link:hover{background:rgba(255,255,255,.2);color:#fff}
+
+/* Beji zilizopanuliwa, kushare profile na madirisha */
+.xbadge{display:inline-flex;align-items:center;gap:.25rem;padding:.12rem .55rem;border-radius:999px;font-size:.68rem;font-weight:700;margin-left:.35rem;background:#e0f2f1;color:var(--teal);vertical-align:middle;white-space:nowrap}
+.xbadge.sm{font-size:.62rem;margin-left:0}
+.mdl-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.mdl{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:1.1rem}
+@media(min-width:600px){.mdl-bg{align-items:center}.mdl{border-radius:20px}}
+.sharegrid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin:.8rem 0}
+.sharegrid a{display:flex;align-items:center;justify-content:center;min-height:44px;border:1px solid var(--bd);border-radius:12px;font-weight:600;color:var(--text)}
+.sharegrid a:hover{border-color:var(--teal);color:var(--teal)}
+.copyrow{display:flex;gap:.5rem;align-items:flex-start}.copyrow input{flex:1;min-width:0;margin-bottom:0}
+.bstat{display:inline-block;padding:.1rem .55rem;border-radius:8px;font-size:.75rem;font-weight:700;background:var(--bg);color:var(--text)}
+.bstat.good{background:var(--leaf);color:var(--green)}.bstat.wait{background:#fff3d6;color:#a16a00}.bstat.bad{background:#fdecea;color:var(--red)}
+.vrow{display:flex;align-items:center;gap:.7rem;padding:.6rem 0;border-bottom:1px solid var(--bd);color:var(--text)}
+.vrow .meta{flex:1;min-width:0}.vrow .meta small{display:block;color:var(--mut)}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.7rem}
+.bgrid .card{margin-bottom:0;display:flex;flex-direction:column;gap:.5rem;align-items:flex-start}
+.bgrid .card p{margin:0;flex:1;font-size:.9rem}
