@@ -67,7 +67,7 @@ function Inner({ me }) {
               <div className="item" key={m.id} style={{ flexDirection: 'column' }}>
                 <div>
                   <span className="xbadge" style={{ marginLeft: 0 }}>✔ {type?.name || m.badge_id}</span>{' '}
-                  <span className={'stat ' + (STATUS_TONE[m.status] || '')}>{st ? pick(st, lang) : m.status}</span>{' '}
+                  <span className={'bstat ' + (STATUS_TONE[m.status] || '')}>{st ? pick(st, lang) : m.status}</span>{' '}
                   <small className="muted">{timeAgo(m.updated_at)}</small>
                 </div>
                 {st && <small className="muted">{lang === 'sw' ? st[3] : st[2]}</small>}
@@ -104,7 +104,7 @@ function Inner({ me }) {
                 <div className="card" key={t.id}>
                   <span className="xbadge" style={{ marginLeft: 0 }}>✔ {t.name}</span>
                   <p>{info.meaning}</p>
-                  {blocked ? <span className={'stat ' + (STATUS_TONE[ex.status] || '')}>{pick(STATUS_INFO[ex.status], lang)}</span>
+                  {blocked ? <span className={'bstat ' + (STATUS_TONE[ex.status] || '')}>{pick(STATUS_INFO[ex.status], lang)}</span>
                     : t.requestable ? <button onClick={() => setSel(t)}>{L('Read criteria & request', 'Soma vigezo na uombe')}</button>
                     : <small className="muted">{L('Granted by admins only', 'Hutolewa na Admin pekee')}</small>}
                 </div>
