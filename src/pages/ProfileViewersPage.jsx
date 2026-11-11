@@ -138,7 +138,7 @@ export default function ProfileViewersPage({
       )}
 
       <p className="tvb-muted tvb-foot">
-        Watu waliozuia au waliozuiwa nawe hawaonekani. Watumiaji wenye profile ya faragha wanaonekana kama "Mtumiaji wa faragha".
+        Watu waliozuia au waliozuiwa nawe hawaonekani. Watumiaji ambao huruhusiwi kuona profile zao wanaonekana kama "Mtumiaji wa faragha".
       </p>
     </div>
   );
