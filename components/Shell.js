@@ -7,7 +7,7 @@ import LangSwitch from '@/components/LangSwitch';
 import { useT } from '@/lib/i18n';
 
 export const Ctx = { me: null };
-const NAV = [['/', '🏠', 'Home'], ['/network', '🤝', 'My Network'], ['/communities', '🌍', 'Communities'], ['/messages', '💬', 'Messages'],
+const NAV = [['/', '🏠', 'Home'], ['/network', '🤝', 'My Network'], ['/badges', '🏅', 'Badges'], ['/communities', '🌍', 'Communities'], ['/messages', '💬', 'Messages'],
   ['/notifications', '🔔', 'Notifications'], ['/events', '📅', 'Events'], ['/opportunities', '💼', 'Opportunities'], ['/projects', '🌱', 'Projects'], ['/resources', '📚', 'Resources'], ['/saved', '🔖', 'Saved'], ['/search', '🔍', 'Search']];
 
 export default function Shell({ children, staffOnly }) {
