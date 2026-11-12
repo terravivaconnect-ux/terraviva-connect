@@ -6,6 +6,9 @@ import Badges from '@/components/Badges';
 import AutoTextarea from '@/components/AutoTextarea';
 import { supabase, uploadFile, fullName, timeAgo } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
+import { ShareButton } from '@/components/ShareModal';
+import FocusBanner from '@/components/FocusBanner';
+import { useFocusId } from '@/lib/focus';
 
 function Project({ p, me, reload }) {
   const { t, lang } = useT();
@@ -42,6 +45,7 @@ function Project({ p, me, reload }) {
       <div className="progress"><div style={{ width: p.progress + '%' }} /></div><small className="muted">{p.progress}% complete</small></>}
       <div style={{ marginTop: '.5rem', display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
         <button className="sec" onClick={toggle}>{open ? t("Hide updates") : t("Progress updates")}</button>
+        <ShareButton type="project" id={p.id} title={p.title} preview={p.summary} className="sec" />
         {own && !editing && <button className="link" onClick={() => { setEf({ title: p.title, summary: p.summary || '', location: p.location || '', status: p.status }); setProg(p.progress); setEditing(true); }}>✏️ {L('Edit', 'Hariri')}</button>}
         {own && p.status !== 'completed' && <button className="link" onClick={() => status('completed')}>{t("✓ Mark completed")}</button>}
         {(own || me.role !== 'member') && <button className="link" onClick={del}>{t("🗑 Delete")}</button>}</div>
@@ -58,11 +62,12 @@ function Project({ p, me, reload }) {
 
 function Inner({ me }) {
   const { t } = useT();
+  const focus = useFocusId();
   const [list, setList] = useState([]); const [show, setShow] = useState(false); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false); const [cover, setCover] = useState(null);
   const [f, setF] = useState({ title: '', summary: '', location: '', status: 'active' });
   const can = ['organization', 'donor'].includes(me.account_type) || me.role !== 'member';
-  const load = async () => { const { data } = await supabase.from('projects').select('*, owner:profiles!projects_owner_id_fkey(username,first_name,last_name,is_beneficiary_verified,is_professional_verified,is_org_verified)').order('created_at', { ascending: false }).limit(50); setList(data || []); };
-  useEffect(() => { load(); }, []);
+  const load = async () => { let q = supabase.from('projects').select('*, owner:profiles!projects_owner_id_fkey(username,first_name,last_name,is_beneficiary_verified,is_professional_verified,is_org_verified)').order('created_at', { ascending: false }).limit(50); if (focus) q = q.eq('id', focus); const { data } = await q; setList(data || []); };
+  useEffect(() => { load(); }, [focus]);
   const set = k => e => setF({ ...f, [k]: e.target.value });
   const create = async (e) => { e.preventDefault(); setErr(''); setBusy(true);
     try { const cover_url = cover ? await uploadFile('projects', me.id, cover) : null;
@@ -71,6 +76,7 @@ function Inner({ me }) {
     } catch (x) { setErr(x.message); } finally { setBusy(false); } };
   return (<div>
     <div style={{ display: 'flex', justifyContent: 'space-between' }}><h2>{t("Projects")}</h2>{can && <button onClick={() => setShow(!show)}>{show ? t("Close") : t("+ New project")}</button>}</div>
+    {focus && <FocusBanner href="/projects" />}
     {!can && <p className="muted">{t("Organization and donor accounts can publish projects. Everyone can follow progress here.")}</p>}
     {show && <form className="card" onSubmit={create}>{err && <div className="err">{err}</div>}
       <input placeholder={t("Project title")} value={f.title} onChange={set('title')} required /><textarea rows={4} placeholder={t("Summary: goals, activities, who benefits")} value={f.summary} onChange={set('summary')} />
