@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import LangSwitch from '@/components/LangSwitch';
 import { useT } from '@/lib/i18n';
+import { goLogin } from '@/lib/redirect';
 
 export const Ctx = { me: null };
 const NAV = [['/', '🏠', 'Home'], ['/network', '🤝', 'My Network'], ['/badges', '🏅', 'Badges'], ['/communities', '🌍', 'Communities'], ['/messages', '💬', 'Messages'],
@@ -19,7 +20,7 @@ export default function Shell({ children, staffOnly }) {
     let ch;
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return router.replace('/login');
+      if (!session) return goLogin(router);
       const { data: p } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
       if (p?.status !== 'active') { await supabase.auth.signOut(); return router.replace('/login'); }
       setMe(p); Ctx.me = p; setReady(true);
