@@ -7,6 +7,7 @@ import Badges from './Badges';
 import RichText from './RichText';
 import MediaGallery from './MediaGallery';
 import Comments from './Comments';
+import ShareModal from './ShareModal';
 import { useT } from '@/lib/i18n';
 
 export const REACTIONS = [['like', '👍', 'Like'], ['love', '❤️', 'Love'], ['insightful', '💡', 'Insightful'], ['support', '🤝', 'Support'], ['celebrate', '🎉', 'Celebrate'], ['curious', '🤔', 'Curious']];
@@ -19,7 +20,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
   const [saved, setSaved] = useState(savedInit); const [ccount, setCcount] = useState(post.comments?.[0]?.count || 0);
   const [editing, setEditing] = useState(false); const [body, setBody] = useState(post.body); const [shown, setShown] = useState(post.body);
   const [votes, setVotes] = useState(post.poll_votes || []);
-  const [o, setO] = useState(null);
+  const [o, setO] = useState(null); const [shareOpen, setShareOpen] = useState(false);
   const a = post.author; const mine = rx.find(r => r.user_id === me.id);
   const kinds = [...new Set(rx.map(r => r.kind))].slice(0, 3);
   const opts = [...(post.poll_options || [])].sort((x, y) => x.position - y.position);
@@ -51,7 +52,16 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
     await supabase.from('reports').insert({ reporter_id: me.id, target_type: 'post', target_id: post.id, reason }); alert(t("Thank you. Our moderators will review it."));
   };
   const del = async () => { if (confirm(t("Delete this post?"))) { await supabase.from('posts').delete().eq('id', post.id); onChange?.(); } };
-  const share = () => { navigator.clipboard?.writeText(`${location.origin}/post/${post.id}`); alert(t("Link copied")); };
+  const share = async () => {
+    if (post.community?.slug) {
+      const { data } = await supabase.from('communities').select('privacy').eq('slug', post.community.slug).maybeSingle();
+      if (data && data.privacy !== 'public') {
+        alert(lang === 'sw' ? 'Chapisho hili liko kwenye jumuiya ya faragha. Wanachama wa jumuiya hiyo pekee wanaweza kuliona, kwa hiyo haliwezi kushirikiwa nje ya app.' : 'This post is in a private community. Only its members can see it, so it cannot be shared outside the app.');
+        return;
+      }
+    }
+    setShareOpen(true);
+  };
   const repost = async () => {
     const c = prompt(t("Add your thoughts (optional):")); if (c === null) return;
     const { error } = await supabase.from('posts').insert({ author_id: me.id, body: c.trim() || '🔁 Reposted', repost_of: post.repost_of || post.id });
@@ -88,7 +98,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
 
       <MediaGallery media={post.post_media} />
 
-      {o && <div className="quote"><div className="post-h"><Avatar p={o.author} size={28} /><b>{fullName(o.author)}</b><small>{timeAgo(o.created_at)}</small></div>
+      {o && <div className="quote"><div className="post-h"><Avatar p={o.author} size={28} /><b>{fullName(o.author)}<Badges p={o.author} /></b><small>{timeAgo(o.created_at)}</small></div>
         <div className="post-body"><RichText text={o.body} /></div><MediaGallery media={o.post_media} /></div>}
 
       {(rx.length > 0 || ccount > 0) && <div className="stats">
@@ -113,6 +123,7 @@ export default function PostCard({ post, me, onChange, savedInit = false }) {
           : <button className="link" onClick={report}>{t("🚩 Report")}</button>}
       </div>
       {open && <Comments postId={post.id} me={me} onAdded={() => setCcount(ccount + 1)} />}
+      {shareOpen && <ShareModal type="post" id={post.id} title={fullName(a)} preview={shown} onClose={() => setShareOpen(false)} />}
     </div>
   );
 }
