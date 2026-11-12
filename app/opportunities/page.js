@@ -4,6 +4,9 @@ import Shell from '@/components/Shell';
 import MediaGallery from '@/components/MediaGallery';
 import { supabase, uploadFile, checkFile, timeAgo } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
+import { ShareButton } from '@/components/ShareModal';
+import FocusBanner from '@/components/FocusBanner';
+import { useFocusId } from '@/lib/focus';
 
 const KINDS = [['all', 'All'], ['job', 'Jobs'], ['volunteer', 'Volunteer'], ['grant', 'Grants'], ['training', 'Training'], ['fellowship', 'Fellowships']];
 const EMPTY = { title: '', organization: '', kind: 'job', location: '', description: '', apply_url: '', deadline: '' };
@@ -75,10 +78,11 @@ function Applications({ o }) {
 function Inner({ me }) {
   const { t, lang } = useT();
   const L = (en, sw) => (lang === 'sw' ? sw : en);
+  const focus = useFocusId();
   const [list, setList] = useState([]); const [k, setK] = useState('all'); const [show, setShow] = useState(false); const [err, setErr] = useState('');
   const [f, setF] = useState(EMPTY); const [editId, setEditId] = useState(null); const [applyFor, setApplyFor] = useState(null); const [appsFor, setAppsFor] = useState(null);
-  const load = async () => { let q = supabase.from('opportunities').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(50); if (k !== 'all') q = q.eq('kind', k); const { data } = await q; setList(data || []); };
-  useEffect(() => { load(); }, [k]);
+  const load = async () => { let q = supabase.from('opportunities').select('*').eq('is_active', true).order('created_at', { ascending: false }).limit(50); if (k !== 'all') q = q.eq('kind', k); if (focus) q = supabase.from('opportunities').select('*').eq('is_active', true).eq('id', focus); const { data } = await q; setList(data || []); };
+  useEffect(() => { load(); }, [k, focus]);
   const set = key => e => setF({ ...f, [key]: e.target.value });
   const startEdit = (o) => { setEditId(o.id); setF({ title: o.title || '', organization: o.organization || '', kind: o.kind, location: o.location || '', description: o.description || '', apply_url: o.apply_url || '', deadline: o.deadline || '' }); setShow(true); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const close = () => { setShow(false); setEditId(null); setF(EMPTY); setErr(''); };
@@ -90,6 +94,7 @@ function Inner({ me }) {
   };
   const del = async (id) => { if (confirm(t("Remove this opportunity?"))) { await supabase.from('opportunities').delete().eq('id', id); load(); } };
   return (<div><div style={{ display: 'flex', justifyContent: 'space-between' }}><h2>{t("Opportunities")}</h2><button onClick={() => (show ? close() : setShow(true))}>{show ? t("Close") : t("+ Post opportunity")}</button></div>
+    {focus && <FocusBanner href="/opportunities" />}
     {show && <form className="card" onSubmit={save}>{err && <div className="err">{err}</div>}
       <input placeholder={t("Title")} value={f.title} onChange={set('title')} required /><div className="row"><input placeholder={t("Organization")} value={f.organization} onChange={set('organization')} />
         <select value={f.kind} onChange={set('kind')}>{KINDS.slice(1).map(([v, l]) => <option key={v} value={v}>{t(l)}</option>)}</select></div>
@@ -103,6 +108,7 @@ function Inner({ me }) {
       <span className="badge b-pro" style={{ marginLeft: 0 }}>{o.kind}</span> {closed && <span className="badge b-org">{L('Closed', 'Imefungwa')}</span>} {o.deadline && <small className="muted">{L('Deadline', 'Mwisho')}: {o.deadline}</small>}
       <p className="post-body">{o.description}</p>
       <div style={{ display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
+        <ShareButton type="opportunity" id={o.id} title={o.title} preview={o.description} className="sec" />
         {!mine && !closed && o.apply_url && (isEmail(o.apply_url)
           ? <button onClick={() => setApplyFor(applyFor === o.id ? null : o.id)}>{t("Apply")}</button>
           : <a className="btn" href={o.apply_url} target="_blank" rel="noreferrer">{t("Apply")}</a>)}
