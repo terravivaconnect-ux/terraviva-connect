@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react';
 import Shell from '@/components/Shell';
 import { supabase } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
+import { ShareButton } from '@/components/ShareModal';
+import FocusBanner from '@/components/FocusBanner';
+import { useFocusId } from '@/lib/focus';
 
 const EMPTY = { title: '', description: '', location: '', link: '', starts_at: '' };
 const toLocal = (d) => { const x = new Date(d); x.setMinutes(x.getMinutes() - x.getTimezoneOffset()); return x.toISOString().slice(0, 16); };
@@ -10,13 +13,14 @@ const toLocal = (d) => { const x = new Date(d); x.setMinutes(x.getMinutes() - x.
 function Inner({ me }) {
   const { t, lang } = useT();
   const L = (en, sw) => (lang === 'sw' ? sw : en);
+  const focus = useFocusId();
   const [list, setList] = useState([]); const [rsvp, setRsvp] = useState([]); const [show, setShow] = useState(false); const [err, setErr] = useState('');
   const [f, setF] = useState(EMPTY); const [editId, setEditId] = useState(null);
   const load = async () => {
-    const { data } = await supabase.from('events').select('*, host:profiles!events_host_id_fkey(first_name,last_name,username)').gte('starts_at', new Date(Date.now() - 864e5).toISOString()).order('starts_at').limit(50); setList(data || []);
+    let q = supabase.from('events').select('*, host:profiles!events_host_id_fkey(first_name,last_name,username)'); q = focus ? q.eq('id', focus) : q.gte('starts_at', new Date(Date.now() - 864e5).toISOString()).order('starts_at').limit(50); const { data } = await q; setList(data || []);
     const { data: r } = await supabase.from('event_rsvps').select('event_id,user_id'); setRsvp(r || []);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [focus]);
   const set = k => e => setF({ ...f, [k]: e.target.value });
   const close = () => { setShow(false); setEditId(null); setF(EMPTY); setErr(''); };
   const startEdit = (ev) => { setEditId(ev.id); setF({ title: ev.title || '', description: ev.description || '', location: ev.location || '', link: ev.link || '', starts_at: toLocal(ev.starts_at) }); setShow(true); window.scrollTo({ top: 0, behavior: 'smooth' }); };
@@ -27,6 +31,7 @@ function Inner({ me }) {
   const toggle = async (id, going) => { going ? await supabase.from('event_rsvps').delete().match({ event_id: id, user_id: me.id }) : await supabase.from('event_rsvps').insert({ event_id: id, user_id: me.id }); load(); };
   const del = async (id) => { if (confirm(t("Delete event?"))) { await supabase.from('events').delete().eq('id', id); load(); } };
   return (<div><div style={{ display: 'flex', justifyContent: 'space-between' }}><h2>{t("Events")}</h2><button onClick={() => (show ? close() : setShow(true))}>{show ? t("Close") : t("+ Create event")}</button></div>
+    {focus && <FocusBanner href="/events" />}
     {show && <form className="card" onSubmit={save}>{err && <div className="err">{err}</div>}
       <input placeholder={t("Event title")} value={f.title} onChange={set('title')} required /><textarea rows={4} placeholder={t("Description")} value={f.description} onChange={set('description')} />
       <div className="row"><input placeholder={t("Location (or Online)")} value={f.location} onChange={set('location')} /><input type="datetime-local" value={f.starts_at} onChange={set('starts_at')} required /></div>
@@ -39,6 +44,7 @@ function Inner({ me }) {
         <p className="post-body">{ev.description}</p><small className="muted">Hosted by {ev.host?.first_name} {ev.host?.last_name} · {n} going</small>
         <div style={{ marginTop: '.6rem', display: 'flex', gap: '.5rem', flexWrap: 'wrap' }}>
           <button className={going ? 'sec' : ''} onClick={() => toggle(ev.id, going)}>{going ? t("✓ Going") : t("I will attend")}</button>
+          <ShareButton type="event" id={ev.id} title={ev.title} preview={ev.description} className="sec" />
           {ev.link && <a className="btn sec" href={ev.link} target="_blank" rel="noreferrer">{t("Open link")}</a>}
           {ev.host_id === me.id && <button className="link" onClick={() => startEdit(ev)}>✏️ {L('Edit', 'Hariri')}</button>}
           {ev.host_id === me.id && <button className="link" onClick={() => del(ev.id)}>{t("🗑 Delete")}</button>}</div></div>); })}</div>);
