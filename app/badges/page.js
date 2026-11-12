@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Shell from '@/components/Shell';
 import { useT } from '@/lib/i18n';
+import { BadgeChip } from '@/components/BadgePills';
 import { timeAgo } from '@/lib/supabase';
 import {
   CATEGORY_LABELS, CATEGORY_ORDER, GENERAL_RULES, STATUS_INFO, STATUS_TONE, getBadgeInfo, pick,
@@ -66,7 +67,7 @@ function Inner({ me }) {
             return (
               <div className="item" key={m.id} style={{ flexDirection: 'column' }}>
                 <div>
-                  <span className="xbadge" style={{ marginLeft: 0 }}>✔ {type?.name || m.badge_id}</span>{' '}
+                  <BadgeChip flush type={type} id={m.badge_id} />{' '}
                   <span className={'bstat ' + (STATUS_TONE[m.status] || '')}>{st ? pick(st, lang) : m.status}</span>{' '}
                   <small className="muted">{timeAgo(m.updated_at)}</small>
                 </div>
@@ -102,7 +103,7 @@ function Inner({ me }) {
               const blocked = ex && OPEN.includes(ex.status);
               return (
                 <div className="card" key={t.id}>
-                  <span className="xbadge" style={{ marginLeft: 0 }}>✔ {t.name}</span>
+                  <BadgeChip flush type={t} />
                   <p>{info.meaning}</p>
                   {blocked ? <span className={'bstat ' + (STATUS_TONE[ex.status] || '')}>{pick(STATUS_INFO[ex.status], lang)}</span>
                     : t.requestable ? <button onClick={() => setSel(t)}>{L('Read criteria & request', 'Soma vigezo na uombe')}</button>
