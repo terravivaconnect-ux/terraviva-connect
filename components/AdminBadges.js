@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Avatar from '@/components/Avatar';
 import { fullName, timeAgo } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
+import { BadgeChip } from '@/components/BadgePills';
 import { STATUS_INFO, STATUS_TONE, getBadgeInfo, pick } from '@/lib/badgeInfo';
 import { fetchBadgeRequests, fetchBadgeTypes, findProfileByUsername, grantBadge, reviewBadge } from '@/lib/badges';
 
@@ -99,7 +100,7 @@ function ReviewCard({ row, type, L, lang, onDone, onError }) {
         <small className="muted">{timeAgo(row.updated_at)}</small>
       </div>
       <div>
-        <span className="xbadge" style={{ marginLeft: 0 }}>✔ {type?.name || row.badge_id}</span>{' '}
+        <BadgeChip flush type={type} id={row.badge_id} />{' '}
         <span className={'bstat ' + (STATUS_TONE[row.status] || '')}>{st ? pick(st, lang) : row.status}</span>
       </div>
       {row.detail && <p>{L('Role/organisation', 'Nafasi/taasisi')}: {row.detail}</p>}
