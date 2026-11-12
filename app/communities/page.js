@@ -5,9 +5,12 @@ import Feed from '@/components/Feed';
 import Avatar from '@/components/Avatar';
 import { supabase, fullName } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
+import { ShareButton } from '@/components/ShareModal';
+import { useFocusId } from '@/lib/focus';
 
 function Inner({ me }) {
   const { t } = useT();
+  const focus = useFocusId();
   const [list, setList] = useState([]); const [mem, setMem] = useState({}); const [sel, setSel] = useState(null); const [pending, setPending] = useState([]);
   const load = async () => {
     const { data } = await supabase.from('communities').select('*').eq('is_active', true).order('name'); setList(data || []);
@@ -22,6 +25,7 @@ function Inner({ me }) {
     setPending(data || []);
   };
   useEffect(() => { loadPending(sel); }, [sel, mem]);
+  useEffect(() => { if (focus && list.length && !sel) { const c = list.find(x => x.id === focus); if (c) setSel(c); } }, [focus, list]);
   const join = async (c) => { const { error } = await supabase.from('community_members').insert({ community_id: c.id, user_id: me.id, status: c.privacy === 'public' ? 'approved' : 'pending' }); if (error) alert(error.message); load(); };
   const leave = async (c) => { await supabase.from('community_members').delete().match({ community_id: c.id, user_id: me.id }); setSel(null); load(); };
   const decide = async (c, uid, ok) => {
@@ -33,6 +37,7 @@ function Inner({ me }) {
     const ok = mem[sel.id]?.status === 'approved';
     return (<div><button className="sec" onClick={() => setSel(null)}>{t("← All communities")}</button>
       <div className="hero" style={{ marginTop: '.8rem' }}><h2>{sel.name}</h2><div>{sel.description}</div></div>
+      {sel.privacy === 'public' && <div style={{ marginBottom: '.8rem' }}><ShareButton type="community" id={sel.id} title={sel.name} preview={sel.description} className="sec" /></div>}
       {isCA(sel) && pending.length > 0 && <div className="card"><h3>{t("Join requests")} ({pending.length})</h3>
         {pending.map(p => <div className="post-h" key={p.user_id}><Avatar p={p.user} /><div className="meta"><b>{fullName(p.user)}</b><small>@{p.user?.username}</small></div>
           <button onClick={() => decide(sel, p.user_id, true)}>{t("Accept")}</button> <button className="sec" onClick={() => decide(sel, p.user_id, false)}>{t("Decline")}</button></div>)}</div>}
@@ -47,6 +52,7 @@ function Inner({ me }) {
   return (<div><h2>{t("Communities")}</h2><div className="grid">{list.map(c => (
     <div className="card" key={c.id}><h3>{c.name}</h3><p className="muted">{c.description}</p><small className="badge b-pro" style={{ marginLeft: 0 }}>{c.privacy}</small>
       <div style={{ marginTop: '.7rem', display: 'flex', gap: '.5rem' }}><button onClick={() => setSel(c)}>{t("Open")}</button>
+        {c.privacy === 'public' && <ShareButton type="community" id={c.id} title={c.name} preview={c.description} className="sec" />}
         {!mem[c.id] ? <button className="sec" onClick={() => join(c)}>{c.privacy === 'public' ? t("Join") : t("Request")}</button> : <small className="muted" style={{ alignSelf: 'center' }}>{mem[c.id].status === 'approved' ? t("✓ Member") : t("Pending")}</small>}</div></div>))}</div></div>);
 }
 export default function Communities() { return <Shell>{me => <Inner me={me} />}</Shell>; }
