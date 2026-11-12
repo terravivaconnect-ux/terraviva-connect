@@ -1,14 +1,15 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import PasswordInput from '@/components/PasswordInput';
 import LangSwitch from '@/components/LangSwitch';
 import { useT } from '@/lib/i18n';
+import { safeNext, takeNext } from '@/lib/redirect';
 
 export default function Login() {
-  const router = useRouter(); const { t, lang } = useT();
+  const router = useRouter(); const sp = useSearchParams(); const { t, lang } = useT();
   const L = (en, sw) => (lang === 'sw' ? sw : en);
   const [email, setEmail] = useState(''); const [pw, setPw] = useState(''); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false);
   const [unconfirmed, setUnconfirmed] = useState(false); const [wait, setWait] = useState(0); const [info, setInfo] = useState('');
@@ -21,7 +22,8 @@ export default function Login() {
       if (error.code === 'email_not_confirmed' || /not confirmed/i.test(error.message)) { setUnconfirmed(true); return; }
       return setErr(error.message);
     }
-    router.replace('/');
+    const stored = takeNext();
+    router.replace(safeNext(sp.get('next')) || stored || '/');
   };
   const resend = async () => {
     setErr(''); setInfo('');
