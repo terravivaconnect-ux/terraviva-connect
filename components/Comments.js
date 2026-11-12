@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { supabase, fullName, timeAgo } from '@/lib/supabase';
 import Avatar from './Avatar';
+import Badges from './Badges';
 import RichText from './RichText';
 import AutoTextarea from './AutoTextarea';
 import { useT } from '@/lib/i18n';
@@ -41,7 +42,7 @@ export default function Comments({ postId, me, onAdded }) {
         {editId === c.id
           ? <div><AutoTextarea autoFocus value={et} onChange={setEt} onSubmit={saveEdit} maxLength={2000} />
               <button type="button" onClick={saveEdit}>{t("Save")}</button> <button type="button" className="sec" onClick={() => setEditId(null)}>{t("Cancel")}</button></div>
-          : <div className="bub"><b>{fullName(c.author)}</b> <small className="muted">{timeAgo(c.created_at)}{c.edited_at ? ` · ${L('edited', 'imehaririwa')}` : ''}</small><div><RichText text={c.body} /></div></div>}
+          : <div className="bub"><b>{fullName(c.author)}<Badges p={c.author} /></b> <small className="muted">{timeAgo(c.created_at)}{c.edited_at ? ` · ${L('edited', 'imehaririwa')}` : ''}</small><div><RichText text={c.body} /></div></div>}
         <div>
           <button className="link" style={liked ? { color: 'var(--teal)' } : {}} onClick={() => like(c)}>👍 {c.comment_likes.length || ''} {t("Like")}</button>
           <button className="link" onClick={() => { setReply(c.id); setRt('@' + c.author.username + ' '); }}>{t("Reply")}</button>
