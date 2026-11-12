@@ -1,0 +1,21 @@
+/* Beji zenye rangi na nembo tofauti kulingana na cheo.
+   Rangi na nembo vinatoka kwenye jedwali la badge_types (safu za tone na icon). */
+.bchip{--c1:#115e59;--c2:#0f766e;display:inline-flex;align-items:center;gap:.3rem;padding:.12rem .65rem .12rem .18rem;border-radius:999px;font-size:.68rem;font-weight:700;letter-spacing:.01em;margin-left:.35rem;vertical-align:middle;white-space:nowrap;color:#fff;background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.bchip.flush{margin-left:0}
+.bchip .bchip-i{display:inline-flex;align-items:center;justify-content:center;flex:none;width:1.3rem;height:1.3rem;border-radius:50%;background:rgba(255,255,255,.93);font-size:.8rem;line-height:1}
+.bchip.sm{font-size:.62rem;margin-left:0}
+.bchip.sm .bchip-i{width:1.05rem;height:1.05rem;font-size:.66rem}
+
+/* Kila rangi ina maana: */
+.bchip.t-gold{--c1:#854d0e;--c2:#a16207}    /* waanzilishi na viongozi wakuu */
+.bchip.t-copper{--c1:#7c2d12;--c2:#9a3412}  /* wakurugenzi na viongozi wa timu */
+.bchip.t-red{--c1:#991b1b;--c2:#dc2626}     /* ngazi ya juu ya taifa */
+.bchip.t-blue{--c1:#1e40af;--c2:#2563eb}    /* viongozi na watumishi wa umma */
+.bchip.t-slate{--c1:#334155;--c2:#475569}   /* wastaafu / wa zamani */
+.bchip.t-indigo{--c1:#3730a3;--c2:#4f46e5}  /* mikoa, wilaya na halmashauri */
+.bchip.t-cyan{--c1:#155e75;--c2:#0e7490}    /* kata, vijiji na mitaa */
+.bchip.t-green{--c1:#166534;--c2:#15803d}   /* jamii na mazingira */
+.bchip.t-teal{--c1:#115e59;--c2:#0f766e}    /* wataalamu na wanachama */
+.bchip.t-purple{--c1:#6b21a8;--c2:#7e22ce}  /* washirika */
+.bchip.t-pink{--c1:#9d174d;--c2:#be185d}    /* wafadhili, wadhamini na mabalozi */
+.bchip.t-orange{--c1:#b93e0a;--c2:#d4510c}  /* tuzo na utambuzi */
