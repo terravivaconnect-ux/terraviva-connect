@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Avatar from './Avatar';
+import Badges from './Badges';
 import { supabase, fullName } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
 
@@ -19,7 +20,7 @@ export default function SidePanel({ me }) {
       {!tags.length && <small className="muted">{t('No hashtags yet')}</small>}
       {tags.map(x => <Link className="tag" key={x.tag} href={`/search?q=${encodeURIComponent('#' + x.tag)}`}>#{x.tag} <small className="muted">· {x.uses}</small></Link>)}</div>
     {people.length > 0 && <div className="card"><h3>{t('Suggested for you')}</h3>
-      {people.map(p => <div className="post-h" key={p.id}><Avatar p={p} size={34} /><div className="meta"><Link href={`/profile/${p.username}`}><b>{fullName(p)}</b></Link><small>{p.headline}</small></div></div>)}
+      {people.map(p => <div className="post-h" key={p.id}><Avatar p={p} size={34} /><div className="meta"><Link href={`/profile/${p.username}`}><b>{fullName(p)}<Badges p={p} /></b></Link><small>{p.headline}</small></div></div>)}
       <Link href="/network">{t('My Network')} →</Link></div>}
   </aside>);
 }
