@@ -1,6 +1,9 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Shell from '@/components/Shell';
+import Avatar from '@/components/Avatar';
+import Badges from '@/components/Badges';
 import AdminStats from '@/components/AdminStats';
 import AdminBeneficiaries from '@/components/AdminBeneficiaries';
 import AdminBadges from '@/components/AdminBadges';
@@ -18,6 +21,7 @@ function Inner({ me }) {
   const [coms, setComs] = useState([]);
   const [nc, setNc] = useState({ name: '', description: '', privacy: 'public' });
   const [ec, setEc] = useState(null);
+  const [uq, setUq] = useState(''); const [ust, setUst] = useState('all');
   const isAdmin = me.role === 'admin';
 
   const load = async () => {
@@ -114,36 +118,49 @@ function Inner({ me }) {
         </div>
       )}
 
-      {tab === 'users' && (
-        <div>
-          {users.map(u => (
-            <div className="card" key={u.id}>
-              <b>{fullName(u)}</b>{' '}
-              <small className="muted">@{u.username} · {u.role} · {u.status}</small>
-              {isAdmin && u.id !== me.id && (
-                <div style={{ marginTop: '.5rem', display: 'flex', gap: '.4rem', flexWrap: 'wrap' }}>
-                  <button className="sec" onClick={() => upd(u, { is_beneficiary_verified: !u.is_beneficiary_verified }, 'toggle_beneficiary')}>
-                    {u.is_beneficiary_verified ? t("Unverify beneficiary") : t("Verify beneficiary")}
-                  </button>
-                  <button className="sec" onClick={() => upd(u, { is_professional_verified: !u.is_professional_verified }, 'toggle_professional')}>
-                    {u.is_professional_verified ? t("Unverify pro") : t("Verify pro")}
-                  </button>
-                  <button className="sec" onClick={() => upd(u, { is_org_verified: !u.is_org_verified }, 'toggle_org')}>
-                    {u.is_org_verified ? t("Unverify org") : t("Verify org")}
-                  </button>
-                  <button className="sec" onClick={() => upd(u, { role: u.role === 'moderator' ? 'member' : 'moderator' }, 'toggle_moderator')}>
-                    {u.role === 'moderator' ? t("Remove moderator") : t("Make moderator")}
-                  </button>
-                  <button className="red" onClick={() => upd(u, { status: u.status === 'suspended' ? 'active' : 'suspended' }, 'toggle_suspend')}>
-                    {u.status === 'suspended' ? t("Reactivate") : t("Suspend")}
-                  </button>
-                  <button className="red" onClick={() => delUser(u.id, fullName(u))}>{L('Delete permanently', 'Futa kabisa')}</button>
-                </div>
-              )}
+      {tab === 'users' && (() => {
+        const q = uq.trim().toLowerCase();
+        const shown = users.filter(u =>
+          (ust === 'all' || (ust === 'staff' ? u.role !== 'member' : u.status === ust)) &&
+          (!q || `${fullName(u)} ${u.username} ${u.country || ''} ${u.headline || ''}`.toLowerCase().includes(q)));
+        return (
+          <div>
+            <input type="search" placeholder={L('Search name, username, country…', 'Tafuta jina, username, nchi…')} value={uq} onChange={e => setUq(e.target.value)} />
+            <div className="tabs">
+              {[['all', 'All', 'Wote'], ['active', 'Active', 'Wanaofanya kazi'], ['suspended', 'Suspended', 'Waliosimamishwa'], ['staff', 'Staff', 'Wasimamizi']].map(([k, en, sw]) => (
+                <button key={k} className={ust === k ? 'on' : ''} onClick={() => setUst(k)}>{L(en, sw)}</button>))}
             </div>
-          ))}
-        </div>
-      )}
+            <small className="muted">{L(`${shown.length} of ${users.length} users`, `Watumiaji ${shown.length} kati ya ${users.length}`)}
+              {isAdmin && <> · <button className="link" style={{ padding: 0 }} onClick={() => setTab('badges')}>{L('Badges and moderator roles are managed in the Badges tab', 'Beji na nafasi ya msimamizi msaidizi zinasimamiwa kwenye tab ya Badges')} →</button></>}</small>
+            <div className="card" style={{ padding: '0 1rem', marginTop: '.6rem' }}>
+              {!shown.length && <p className="muted">{L('No users match your search.', 'Hakuna mtumiaji anayelingana na utafutaji.')}</p>}
+              {shown.map(u => (
+                <div key={u.id} style={{ display: 'flex', gap: '.7rem', alignItems: 'center', flexWrap: 'wrap', padding: '.7rem 0', borderBottom: '1px solid var(--bd)' }}>
+                  <Avatar p={u} size={42} />
+                  <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                    <Link href={`/profile/${u.username}`}><b>{fullName(u)}</b></Link><Badges p={u} />
+                    <div><small className="muted">@{u.username} · {u.country || '—'} · {timeAgo(u.created_at)}</small></div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '.3rem', alignItems: 'center' }}>
+                    <span className="badge b-pro" style={{ marginLeft: 0 }}>{u.role}</span>
+                    {u.status === 'active'
+                      ? <span className="badge b-ben" style={{ marginLeft: 0 }}>{u.status}</span>
+                      : <span className="badge" style={{ marginLeft: 0, background: '#fdecea', color: 'var(--red)' }}>{u.status}</span>}
+                  </div>
+                  {isAdmin && u.id !== me.id && (
+                    <div style={{ display: 'flex', gap: '.4rem' }}>
+                      <button className={u.status === 'suspended' ? 'sec' : 'red'} onClick={() => upd(u, { status: u.status === 'suspended' ? 'active' : 'suspended' }, 'toggle_suspend')}>
+                        {u.status === 'suspended' ? t("Reactivate") : t("Suspend")}
+                      </button>
+                      <button className="link" onClick={() => delUser(u.id, fullName(u))}>🗑 {L('Delete', 'Futa')}</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {tab === 'communities' && (
         <div>
