@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import LangSwitch from '@/components/LangSwitch';
+import MaintenanceScreen from '@/components/MaintenanceScreen';
 import { useT } from '@/lib/i18n';
 import { goLogin } from '@/lib/redirect';
 
@@ -11,10 +12,13 @@ export const Ctx = { me: null };
 const NAV = [['/', '🏠', 'Home'], ['/network', '🤝', 'My Network'], ['/badges', '🏅', 'Badges'], ['/communities', '🌍', 'Communities'], ['/messages', '💬', 'Messages'],
   ['/notifications', '🔔', 'Notifications'], ['/events', '📅', 'Events'], ['/opportunities', '💼', 'Opportunities'], ['/projects', '🌱', 'Projects'], ['/resources', '📚', 'Resources'], ['/saved', '🔖', 'Saved'], ['/search', '🔍', 'Search']];
 
+const asStatus = (d) => (Array.isArray(d) ? d[0] : d) || null;
+
 export default function Shell({ children, staffOnly }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const router = useRouter(); const path = usePathname();
   const [me, setMe] = useState(null); const [unread, setUnread] = useState(0); const [ready, setReady] = useState(false);
+  const [maint, setMaint] = useState(null);
 
   useEffect(() => {
     let ch;
@@ -23,6 +27,8 @@ export default function Shell({ children, staffOnly }) {
       if (!session) return goLogin(router);
       const { data: p } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
       if (p?.status !== 'active') { await supabase.auth.signOut(); return router.replace('/login'); }
+      const { data: st } = await supabase.rpc('get_app_status'); // hali ya matengenezo, kabla ya kuonyesha app
+      setMaint(asStatus(st));
       setMe(p); Ctx.me = p; setReady(true);
       const load = async () => {
         const { count } = await supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', p.id).eq('is_read', false);
@@ -34,9 +40,21 @@ export default function Shell({ children, staffOnly }) {
     return () => { if (ch) supabase.removeChannel(ch); };
   }, [router]);
 
-  if (!ready) return <div className="auth"><img src="/logo.png" width="120" alt="Terraviva" /></div>;
-  if (staffOnly && me.role === 'member') return <div className="main">{t("Not authorised.")}</div>;
+  // Angalia hali ya matengenezo kila sekunde 30 na mtumiaji anaporudi kwenye dirisha.
+  const checkMaint = async () => { const { data } = await supabase.rpc('get_app_status'); setMaint(asStatus(data)); };
+  useEffect(() => {
+    if (!ready) return undefined;
+    const id = setInterval(checkMaint, 30000);
+    window.addEventListener('focus', checkMaint);
+    return () => { clearInterval(id); window.removeEventListener('focus', checkMaint); };
+  }, [ready]);
+
   const logout = async () => { await supabase.auth.signOut(); router.replace('/login'); };
+
+  if (!ready) return <div className="auth"><img src="/logo.png" width="120" alt="Terraviva" /></div>;
+  // Wakati wa matengenezo, wanachama wa kawaida wanaona ujumbe tu. Admin na moderator wanaendelea.
+  if (maint?.maintenance && me.role === 'member') return <MaintenanceScreen status={maint} onRetry={checkMaint} onLogout={logout} />;
+  if (staffOnly && me.role === 'member') return <div className="main">{t("Not authorised.")}</div>;
   const items = [...NAV, [`/profile/${me.username}`, '👤', 'My Profile'], ['/settings', '⚙️', 'Settings']];
   if (me.role !== 'member') items.push(['/admin', '🛡️', 'Admin']);
   return (
@@ -51,7 +69,15 @@ export default function Shell({ children, staffOnly }) {
         <div className="hide-m" style={{ marginTop: 'auto', padding: '.4rem .9rem' }}><LangSwitch /></div>
         <a className="nav hide-m" style={{ cursor: 'pointer' }} onClick={logout}><span>🚪</span><span className="lbl">{t("Log out")}</span></a>
       </nav>
-      <main className="main">{typeof children === 'function' ? children(me) : children}</main>
+      <main className="main">
+        {maint?.maintenance && me.role !== 'member' && (
+          <div style={{ background: '#fff3d6', color: '#a16a00', padding: '.6rem .8rem', borderRadius: 10, marginBottom: '.8rem', fontSize: '.9rem' }}>
+            🛠 {lang === 'sw' ? 'Hali ya matengenezo imewashwa: wanachama wa kawaida hawawezi kuingia. Wewe unaweza kuendelea.' : 'Maintenance mode is ON: regular members cannot enter. You can carry on.'}
+            {me.role === 'admin' && <> <Link href="/admin">{lang === 'sw' ? 'Zima kwenye Admin' : 'Turn off in Admin'} →</Link></>}
+          </div>
+        )}
+        {typeof children === 'function' ? children(me) : children}
+      </main>
     </div>
   );
 }
