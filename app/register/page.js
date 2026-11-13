@@ -25,9 +25,18 @@ export default function Register() {
     if (!/^[a-zA-Z0-9_.]{3,30}$/.test(f.username)) return setErr('Username: 3-30 letters, numbers, dot or underscore.');
     setBusy(true);
     const { email, password, agree, ...meta } = f;
-    const { error } = await supabase.auth.signUp({ email, password, options: { data: meta, emailRedirectTo: window.location.origin + '/login' } });
+    const mail = email.trim();
+    const already = L('This email is already registered. Log in instead, or use "Forgot password". If you never confirmed your email, log in and press "Resend confirmation email".', 'Barua pepe hii tayari imesajiliwa. Ingia badala yake, au tumia "Umesahau nenosiri". Kama hukuwahi kuthibitisha barua pepe, ingia kisha bonyeza "Tuma tena barua ya uthibitisho".');
+    // Barua pepe moja = akaunti moja (inajumuisha tofauti za herufi kubwa, "+tag" na nukta za Gmail).
+    const chk = await supabase.rpc('email_taken', { p_email: mail });
+    if (!chk.error && chk.data === true) { setBusy(false); return setErr(already); }
+    const { data, error } = await supabase.auth.signUp({ email: mail, password, options: { data: meta, emailRedirectTo: window.location.origin + '/login' } });
     setBusy(false);
-    error ? setErr(error.message) : setDone(true);
+    if (error) return setErr(/database error saving new user/i.test(error.message)
+      ? L('The account could not be created. This email or username may already be in use.', 'Akaunti haikuweza kufunguliwa. Barua pepe au username hii inaweza kuwa tayari inatumika.')
+      : error.message);
+    if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) return setErr(already);
+    setDone(true);
   };
   if (done) return (<div className="auth"><div className="auth-card"><img className="logo" src="/logo.png" alt="" /><h2>{t("Check your email")}</h2>
     <p className="muted">We sent a verification link to <b>{f.email}</b>. Verify your account, then log in.</p>
