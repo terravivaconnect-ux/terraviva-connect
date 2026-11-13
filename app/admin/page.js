@@ -7,10 +7,11 @@ import Badges from '@/components/Badges';
 import AdminStats from '@/components/AdminStats';
 import AdminBeneficiaries from '@/components/AdminBeneficiaries';
 import AdminBadges from '@/components/AdminBadges';
+import AdminMaintenance from '@/components/AdminMaintenance';
 import { supabase, fullName, timeAgo } from '@/lib/supabase';
 import { useT } from '@/lib/i18n';
 
-const TABS = { stats: 'Statistics', reports: 'Reports', users: 'Users', beneficiaries: 'Beneficiaries', badges: 'Badges', communities: 'Communities' };
+const TABS = { stats: 'Statistics', reports: 'Reports', users: 'Users', beneficiaries: 'Beneficiaries', badges: 'Badges', communities: 'Communities', maintenance: 'Maintenance' };
 
 function Inner({ me }) {
   const { t, lang } = useT();
@@ -22,17 +23,18 @@ function Inner({ me }) {
   const [nc, setNc] = useState({ name: '', description: '', privacy: 'public' });
   const [ec, setEc] = useState(null);
   const [uq, setUq] = useState(''); const [ust, setUst] = useState('all');
+  const [rf, setRf] = useState('open'); const [rlimit, setRlimit] = useState(50);
   const isAdmin = me.role === 'admin';
 
   const load = async () => {
-    const { data: r } = await supabase.from('reports').select('*, reporter:profiles!reports_reporter_id_fkey(username)').order('created_at', { ascending: false }).limit(50);
+    const { data: r } = await supabase.from('reports').select('*, reporter:profiles!reports_reporter_id_fkey(username)').order('created_at', { ascending: false }).limit(rlimit);
     setReports(r || []);
     const { data: u } = await supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(100);
     setUsers(u || []);
     const { data: c } = await supabase.from('communities').select('*').order('name');
     setComs(c || []);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [rlimit]);
 
   const log = (action, target_type, target_id, details) =>
     supabase.from('audit_logs').insert({ actor_id: me.id, action, target_type, target_id, details });
@@ -85,21 +87,27 @@ function Inner({ me }) {
     <div>
       <h2>{t("Administration")}</h2>
       <div className="tabs">
-        {Object.keys(TABS).filter(k => isAdmin || (k !== 'beneficiaries' && k !== 'badges')).map(k => (
+        {Object.keys(TABS).filter(k => isAdmin || !['beneficiaries', 'badges', 'maintenance'].includes(k)).map(k => (
           <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>
-            {t(TABS[k])}
+            {k === 'maintenance' ? L('Maintenance', 'Matengenezo') : t(TABS[k])}{k === 'reports' && reports.filter(x => x.status === 'open').length > 0 ? ` (${reports.filter(x => x.status === 'open').length})` : ''}
           </button>
         ))}
       </div>
 
       {tab === 'stats' && <AdminStats />}
-      {tab === 'beneficiaries' && isAdmin && <AdminBeneficiaries />}
+      {tab === 'beneficiaries' && isAdmin && <AdminBeneficiaries onOpenBadges={() => setTab('badges')} />}
+      {tab === 'maintenance' && isAdmin && <AdminMaintenance />}
       {tab === 'badges' && isAdmin && <AdminBadges />}
 
       {tab === 'reports' && (
         <div>
-          {!reports.length && <div className="card muted">{t("No reports.")}</div>}
-          {reports.map(r => (
+          <p className="muted">{L('Reports sent by members (🚩 Report on posts and profiles) and account deletion requests. They are kept until you delete them, and the newest are shown first.', 'Ripoti zilizotumwa na wanachama (🚩 Ripoti kwenye machapisho na wasifu) pamoja na maombi ya kufutiwa akaunti. Zinabaki hadi uzifute, na za hivi karibuni zinaonekana kwanza.')}</p>
+          <div className="tabs">
+            {[['open', 'Open', 'Zilizo wazi'], ['actioned', 'Actioned', 'Zilizoshughulikiwa'], ['dismissed', 'Dismissed', 'Zilizopuuzwa'], ['all', 'All', 'Zote']].map(([k, en, sw]) => (
+              <button key={k} className={rf === k ? 'on' : ''} onClick={() => setRf(k)}>{L(en, sw)}</button>))}
+          </div>
+          {!reports.filter(r => rf === 'all' || r.status === rf).length && <div className="card muted">{t("No reports.")}</div>}
+          {reports.filter(r => rf === 'all' || r.status === rf).map(r => (
             <div className="card" key={r.id}>
               <b>{r.target_type}</b> · <span className="badge b-org">{r.status}</span>{' '}
               <small className="muted">by @{r.reporter?.username} · {timeAgo(r.created_at)}</small>
@@ -115,6 +123,7 @@ function Inner({ me }) {
               )}
             </div>
           ))}
+          {reports.length >= rlimit && <p><button className="sec" onClick={() => setRlimit(rlimit + 50)}>{L('Load more', 'Pakia zaidi')}</button></p>}
         </div>
       )}
 
