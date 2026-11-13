@@ -13,6 +13,8 @@ export default function Login() {
   const L = (en, sw) => (lang === 'sw' ? sw : en);
   const [email, setEmail] = useState(''); const [pw, setPw] = useState(''); const [err, setErr] = useState(''); const [busy, setBusy] = useState(false);
   const [unconfirmed, setUnconfirmed] = useState(false); const [wait, setWait] = useState(0); const [info, setInfo] = useState('');
+  const [maint, setMaint] = useState(null);
+  useEffect(() => { supabase.rpc('get_app_status').then(({ data }) => { const s = Array.isArray(data) ? data[0] : data; if (s?.maintenance) setMaint(s); }); }, []);
   useEffect(() => { if (wait <= 0) return; const id = setTimeout(() => setWait(wait - 1), 1000); return () => clearTimeout(id); }, [wait]);
   const submit = async (e) => {
     e.preventDefault(); setBusy(true); setErr(''); setInfo(''); setUnconfirmed(false);
@@ -36,6 +38,9 @@ export default function Login() {
       <img className="logo" src="/logo.png" alt="Terraviva" />
       <h2>Terraviva Connect</h2>
       <p className="tag">{t('Connect. Share Knowledge. Empower Communities. Protect Nature.')}</p>
+      {maint && <div className="ok" style={{ background: '#fff3d6', color: '#a16a00', textAlign: 'left' }}>🛠 {lang === 'sw' ? maint.message_sw : maint.message_en}
+        {maint.eta && <div><b>{L('Expected back', 'Tunatarajia kurudi')}:</b> {maint.eta}</div>}
+        <div><small>{L('Only administrators and moderators can log in right now.', 'Kwa sasa wasimamizi pekee ndio wanaweza kuingia.')}</small></div></div>}
       {err && <div className="err">{err}</div>}
       {info && <div className="ok">{info}</div>}
       {unconfirmed && <div className="err">
