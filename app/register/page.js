@@ -9,7 +9,7 @@ const INTERESTS = ['Sustainable Agriculture', 'Youth and Women Empowerment', 'En
 export default function Register() {
   const { t, lang } = useT();
   const L = (en, sw) => (lang === 'sw' ? sw : en);
-  const [f, setF] = useState({ first_name: '', middle_name: '', last_name: '', username: '', email: '', phone: '', country: 'Tanzania', region: '', district: '', headline: '', interest: INTERESTS[0], account_type: 'general', password: '', agree: false });
+  const [f, setF] = useState({ first_name: '', middle_name: '', last_name: '', username: '', email: '', phone: '', country: 'Tanzania', region: '', district: '', headline: '', interest: INTERESTS[0], gender: '', account_type: 'general', password: '', agree: false });
   const [err, setErr] = useState(''); const [done, setDone] = useState(false); const [busy, setBusy] = useState(false);
   const [wait, setWait] = useState(0); const [info, setInfo] = useState('');
   useEffect(() => { if (wait <= 0) return; const id = setTimeout(() => setWait(wait - 1), 1000); return () => clearTimeout(id); }, [wait]);
@@ -58,6 +58,9 @@ export default function Register() {
         <input placeholder={t("District (optional)")} value={f.district} onChange={set('district')} />
         <input placeholder={t("Headline, e.g. Agronomist | Farmer | Student")} value={f.headline} onChange={set('headline')} />
         <select value={f.interest} onChange={set('interest')}>{INTERESTS.map(i => <option key={i}>{i}</option>)}</select>
+        <select value={f.gender} onChange={set('gender')}>
+          <option value="">{L('Gender (optional, private)', 'Jinsia (si lazima, ni siri)')}</option>
+          <option value="male">{L('Male', 'Mwanaume')}</option><option value="female">{L('Female', 'Mwanamke')}</option><option value="other">{L('Other', 'Nyingine')}</option></select>
         <select value={f.account_type} onChange={set('account_type')}>
           <option value="general">{t("General member")}</option><option value="professional">{t("Professional")}</option>
           <option value="organization">{t("Organization (verification required)")}</option><option value="donor">{t("Donor / Development partner (verification required)")}</option></select>
