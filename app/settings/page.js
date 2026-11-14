@@ -7,23 +7,28 @@ import { useT } from '@/lib/i18n';
 function Inner({ me }) {
   const { t, lang } = useT();
   const L = (en, sw) => (lang === 'sw' ? sw : en);
-  const [gender, setGender] = useState('');
-  useEffect(() => { supabase.from('member_demographics').select('gender').eq('user_id', me.id).maybeSingle().then(({ data }) => setGender(data?.gender || '')); }, []);
-  const [f, setF] = useState({ first_name: me.first_name, middle_name: me.middle_name || '', last_name: me.last_name, headline: me.headline || '', bio: me.bio || '', country: me.country || '', region: me.region || '', district: me.district || '', phone: me.phone || '', visibility: me.visibility });
+  const [gender, setGender] = useState(''); const [phone, setPhone] = useState('');
+  useEffect(() => {
+    supabase.from('member_demographics').select('gender').eq('user_id', me.id).maybeSingle().then(({ data }) => setGender(data?.gender || ''));
+    supabase.from('member_private').select('phone').eq('user_id', me.id).maybeSingle().then(({ data }) => setPhone(data?.phone || ''));
+  }, []);
+  const [f, setF] = useState({ first_name: me.first_name, middle_name: me.middle_name || '', last_name: me.last_name, headline: me.headline || '', bio: me.bio || '', country: me.country || '', region: me.region || '', district: me.district || '', visibility: me.visibility });
   const [msg, setMsg] = useState(''); const [err, setErr] = useState(''); const [pw, setPw] = useState('');
   const set = k => e => setF({ ...f, [k]: e.target.value });
   const save = async (e) => {
     e.preventDefault(); setErr('');
     const { error } = await supabase.from('profiles').update(f).eq('id', me.id);
     if (error) return setErr(error.message);
-    const g = await supabase.from('member_demographics').upsert({ user_id: me.id, gender: gender || null, updated_at: new Date().toISOString() });
-    g.error ? setErr(g.error.message) : setMsg('Profile saved.');
+    const now = new Date().toISOString();
+    const g = await supabase.from('member_demographics').upsert({ user_id: me.id, gender: gender || null, updated_at: now });
+    const p = await supabase.from('member_private').upsert({ user_id: me.id, phone: phone.trim() || null, updated_at: now });
+    (g.error || p.error) ? setErr((g.error || p.error).message) : setMsg('Profile saved.');
   };
   const img = (col, bucket) => async (e) => { const file = e.target.files[0]; if (!file) return; try { const url = await uploadFile(bucket, me.id, file); await supabase.from('profiles').update({ [col]: url }).eq('id', me.id); setMsg('Image updated. Refresh to see it.'); } catch (x) { setErr(x.message); } };
   const chpw = async (e) => { e.preventDefault(); const { error } = await supabase.auth.updateUser({ password: pw }); error ? setErr(error.message) : (setMsg('Password changed.'), setPw('')); };
   const exportData = async () => {
-    const [pr, po, co, sv] = await Promise.all([supabase.from('profiles').select('*').eq('id', me.id), supabase.from('posts').select('*').eq('author_id', me.id), supabase.from('comments').select('*').eq('author_id', me.id), supabase.from('saved_posts').select('*').eq('user_id', me.id)]);
-    const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), profile: pr.data, posts: po.data, comments: co.data, saved: sv.data }, null, 2)], { type: 'application/json' });
+    const [pr, po, co, sv, pv, dm] = await Promise.all([supabase.from('profiles').select('*').eq('id', me.id), supabase.from('posts').select('*').eq('author_id', me.id), supabase.from('comments').select('*').eq('author_id', me.id), supabase.from('saved_posts').select('*').eq('user_id', me.id), supabase.from('member_private').select('*').eq('user_id', me.id), supabase.from('member_demographics').select('*').eq('user_id', me.id)]);
+    const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), profile: pr.data, private: pv.data, demographics: dm.data, posts: po.data, comments: co.data, saved: sv.data }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'terraviva-my-data.json'; a.click();
   };
   const requestDelete = async () => {
@@ -39,7 +44,7 @@ function Inner({ me }) {
       <div className="row"><input placeholder={t("First name")} value={f.first_name} onChange={set('first_name')} required /><input placeholder={t("Last name")} value={f.last_name} onChange={set('last_name')} required /></div>
       <input placeholder={t("Headline")} value={f.headline} onChange={set('headline')} /><textarea rows={4} placeholder={t("About you")} value={f.bio} onChange={set('bio')} />
       <div className="row"><input placeholder={t("Country")} value={f.country} onChange={set('country')} /><input placeholder={t("Region")} value={f.region} onChange={set('region')} /><input placeholder={t("District")} value={f.district} onChange={set('district')} /></div>
-      <input placeholder={t("Phone (never shown publicly)")} value={f.phone} onChange={set('phone')} />
+      <input placeholder={t("Phone (never shown publicly)")} value={phone} onChange={e => setPhone(e.target.value)} />
       <label>{L('Gender (optional)', 'Jinsia (si lazima)')}<select value={gender} onChange={e => setGender(e.target.value)}>
         <option value="">{L('Prefer not to say', 'Napendelea kutosema')}</option><option value="male">{L('Male', 'Mwanaume')}</option><option value="female">{L('Female', 'Mwanamke')}</option><option value="other">{L('Other', 'Nyingine')}</option></select></label>
       <small className="muted">{L('Private: never shown on your profile. Used only for anonymous community statistics.', 'Ni siri: haionekani kwenye wasifu wako. Inatumika kwa takwimu za jumla zisizotaja majina pekee.')}</small>
