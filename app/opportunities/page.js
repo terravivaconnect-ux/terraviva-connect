@@ -16,9 +16,10 @@ const isClosed = (o) => o.deadline && new Date(o.deadline + 'T23:59:59') < new D
 function ApplyForm({ o, me, onClose }) {
   const { lang } = useT();
   const L = (en, sw) => (lang === 'sw' ? sw : en);
-  const [f, setF] = useState({ full_name: `${me.first_name || ''} ${me.last_name || ''}`.trim(), email: '', phone: me.phone || '', message: '' });
+  const [f, setF] = useState({ full_name: `${me.first_name || ''} ${me.last_name || ''}`.trim(), email: '', phone: '', message: '' });
   const [cv, setCv] = useState(null); const [busy, setBusy] = useState(false); const [err, setErr] = useState(''); const [done, setDone] = useState(null);
   useEffect(() => { supabase.auth.getUser().then(({ data }) => { if (data?.user?.email) setF(x => ({ ...x, email: x.email || data.user.email })); }); }, []);
+  useEffect(() => { supabase.from('member_private').select('phone').eq('user_id', me.id).maybeSingle().then(({ data }) => { if (data?.phone) setF(x => ({ ...x, phone: x.phone || data.phone })); }); }, []);
   const set = k => e => setF({ ...f, [k]: e.target.value });
   const submit = async (e) => {
     e.preventDefault(); setErr('');
